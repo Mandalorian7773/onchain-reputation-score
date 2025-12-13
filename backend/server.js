@@ -476,11 +476,11 @@ function evaluateLeetCodeSignal(problemSolvingData) {
   return 'weak';
 }
 
-function evaluateConsistency(wallet, github, leetcode) {
+function evaluateConsistency(wallet, github, problemSolvingData) {
   const ages = [];
   if (wallet?.found) ages.push(wallet.age_days);
   if (github?.found) ages.push(github.account_age_days);
-  if (leetcode?.found) ages.push(leetcode.account_age_days);
+  if (problemSolvingData?.found) ages.push(problemSolvingData.account_age_days);
   
   if (ages.length < 2) return 'weak';
   
