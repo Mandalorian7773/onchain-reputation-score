@@ -32,7 +32,6 @@ function App() {
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       setWalletAddress(accounts[0]);
       setWalletConnected(true);
-      setFormData(prev => ({ ...prev, wallet: { ...prev.wallet, address: accounts[0] } }));
       toast.success("Wallet connected");
     } catch (error) {
       toast.error("Failed to connect wallet");
