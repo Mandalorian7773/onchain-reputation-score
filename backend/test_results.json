@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-13T16:04:01.140985",
+  "timestamp": "2025-12-13T16:06:24.003484",
   "total_tests": 10,
-  "passed_tests": 7,
-  "failed_tests": 3,
-  "success_rate": "70.0%",
+  "passed_tests": 9,
+  "failed_tests": 1,
+  "success_rate": "90.0%",
   "test_details": [
     {
       "test": "Root Endpoint",
@@ -20,19 +20,19 @@
     {
       "test": "Profile GitHub Only",
       "status": "PASSED",
-      "message": "Status: 200, GitHub Score: 51, Hash: d3bdf06db6dbd50a...",
+      "message": "Status: 200, GitHub Score: 51, Hash: 87c34bf57479799a...",
       "response_data": null
     },
     {
       "test": "Profile LeetCode Only",
       "status": "PASSED",
-      "message": "Status: 200, LeetCode Score: 63.7, Hash: a9686ff32307f8a7...",
+      "message": "Status: 200, LeetCode Score: 63.7, Hash: e22aec1f4b3ea1a7...",
       "response_data": null
     },
     {
       "test": "Profile Wallet Only",
       "status": "PASSED",
-      "message": "Status: 200, Wallet Score: 0, Hash: 98acdc89b617d2e9...",
+      "message": "Status: 200, Wallet Score: 0, Hash: fb04f5486163109f...",
       "response_data": null
     },
     {
@@ -44,34 +44,20 @@
     {
       "test": "Deterministic Behavior",
       "status": "PASSED",
-      "message": "Scores match: {'github_score': 51, 'leetcode_score': 0, 'wallet_persistence_score': 0}, Compute count: 1, Hash1: 10ab3d651caf7b8d..., Hash2: d12df3aa5b482450...",
+      "message": "Scores match: {'github_score': 51, 'leetcode_score': 0, 'wallet_persistence_score': 0}, Compute count: 4, Hash1: 45ca9b283fcc5b3b..., Hash2: 5ba66c3a21d0884f...",
       "response_data": null
     },
     {
       "test": "Verification Endpoint",
-      "status": "FAILED",
-      "message": "Hash verification failed: Profile not found in platform history",
-      "response_data": {
-        "verified": false,
-        "message": "Profile not found in platform history"
-      }
+      "status": "PASSED",
+      "message": "Correct hash verified, wrong hash rejected. Profile ID: torvalds",
+      "response_data": null
     },
     {
       "test": "Platform History Tracking",
-      "status": "FAILED",
-      "message": "Compute count didn't increase: 1 -> 1",
-      "response_data": {
-        "data1": {
-          "first_seen_at": "2025-12-13T16:03:59.968Z",
-          "compute_count": 1,
-          "platform_age_days": 0
-        },
-        "data2": {
-          "first_seen_at": "2025-12-13T16:04:01.038Z",
-          "compute_count": 1,
-          "platform_age_days": 0
-        }
-      }
+      "status": "PASSED",
+      "message": "Compute count increased: 6 -> 7, First seen preserved: 2025-12-13T16:06:18.549Z",
+      "response_data": null
     },
     {
       "test": "Role Signal Extraction",
@@ -107,12 +93,12 @@
             "anomalies": [],
             "summary": "Profile shows limited technical signals. More public activity needed for comprehensive assessment."
           },
-          "timestamp": "2025-12-13T16:04:01.109Z"
+          "timestamp": "2025-12-13T16:06:23.972Z"
         },
-        "artifact_hash": "772f83f7171ccc0c0dc14559a6836a6ef82205b240e766670489be6d05180edd",
+        "artifact_hash": "ee905628479329591bfefd8bc03a6151df98fd368fe5d4452a3cbf1c2b670e2c",
         "platform_history": {
-          "first_seen_at": "2025-12-13T16:04:01.109Z",
-          "compute_count": 1,
+          "first_seen_at": "2025-12-13T16:06:18.549Z",
+          "compute_count": 8,
           "platform_age_days": 0
         },
         "blockchain_proof": {
