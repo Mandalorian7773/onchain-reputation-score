@@ -623,21 +623,24 @@ function deriveConfidence(signals, anomalies) {
   return 'low';
 }
 
-function generateReasoning(signals, anomalies, wallet, github, problemSolvingData) {
+function generateReasoning(signals, anomalies, wallet, github, problemSolvingData, kaggleData) {
   const reasoning = [];
   
   const presentSignals = [];
   if (wallet?.found) presentSignals.push('wallet');
   if (github?.found) presentSignals.push('GitHub');
   if (problemSolvingData?.found) presentSignals.push(problemSolvingData.platform);
+  if (kaggleData?.found) presentSignals.push('Kaggle');
   
   if (presentSignals.length === 0) {
     reasoning.push('No signals available for analysis');
     return reasoning;
   }
   
-  if (presentSignals.length === 3) {
-    reasoning.push('All three signal categories present');
+  if (presentSignals.length === 4) {
+    reasoning.push('All four signal categories present');
+  } else if (presentSignals.length === 3) {
+    reasoning.push('Three signal categories present');
   } else if (presentSignals.length === 2) {
     reasoning.push(`Two signal categories present: ${presentSignals.join(' and ')}`);
   } else {
