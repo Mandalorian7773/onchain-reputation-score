@@ -398,8 +398,15 @@ async function fetchProblemSolvingData(platform, username) {
   }
 }
 
-// Calculate scores
-function calculateScores(wallet, github, problemSolvingData, kaggleData) {
+// Calculate scores with dynamic normalization
+function calculateScores(wallet, github, problemSolving, kaggle) {
+  // Individual category max scores
+  const MAX_WALLET = 40;
+  const MAX_GITHUB = 50;
+  const MAX_PROBLEM_SOLVING = 35;
+  const MAX_KAGGLE = 30;
+  const MAX_CONSISTENCY = 15;
+  
   // Wallet score (max 40)
   let walletScore = 0;
   if (wallet?.found) {
@@ -421,19 +428,19 @@ function calculateScores(wallet, github, problemSolvingData, kaggleData) {
   
   // Problem-solving score (max 35 for coding platforms)
   let problemSolvingScore = 0;
-  if (problemSolvingData?.found) {
+  if (problemSolving?.found) {
     // Coding platform scoring (max 35)
-    const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
-    const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
+    const ageScore = Math.min(problemSolving.account_age_days / 365, 1.0) * 10;
+    const totalScore = Math.min(problemSolving.total_solved / 500, 1.0) * 15;
     
     // Platform-specific difficulty bonus
     let difficultyBonus = 0;
-    if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
-      difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
-    } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating) {
-      difficultyBonus = Math.min(problemSolvingData.rating / 3000, 1.0) * 10;
-    } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating) {
-      difficultyBonus = Math.min(problemSolvingData.rating / 2500, 1.0) * 10;
+    if (problemSolving.platform === 'leetcode' && problemSolving.hard > 0) {
+      difficultyBonus = Math.min(problemSolving.hard / 50, 1.0) * 10;
+    } else if (problemSolving.platform === 'codeforces' && problemSolving.rating) {
+      difficultyBonus = Math.min(problemSolving.rating / 3000, 1.0) * 10;
+    } else if (problemSolving.platform === 'codechef' && problemSolving.rating) {
+      difficultyBonus = Math.min(problemSolving.rating / 2500, 1.0) * 10;
     }
     
     problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
@@ -441,10 +448,10 @@ function calculateScores(wallet, github, problemSolvingData, kaggleData) {
   
   // Kaggle score (max 30)
   let kaggleScore = 0;
-  if (kaggleData?.found) {
-    const competitionScore = Math.min((kaggleData.competitions || 0) / 20, 1.0) * 12;
-    const datasetScore = Math.min((kaggleData.datasets || 0) / 30, 1.0) * 8;
-    const notebookScore = Math.min((kaggleData.notebooks || 0) / 50, 1.0) * 10;
+  if (kaggle?.found) {
+    const competitionScore = Math.min((kaggle.competitions || 0) / 20, 1.0) * 12;
+    const datasetScore = Math.min((kaggle.datasets || 0) / 30, 1.0) * 8;
+    const notebookScore = Math.min((kaggle.notebooks || 0) / 50, 1.0) * 10;
     kaggleScore = Math.round((competitionScore + datasetScore + notebookScore) * 10) / 10;
   }
   
@@ -452,8 +459,8 @@ function calculateScores(wallet, github, problemSolvingData, kaggleData) {
   const ages = [];
   if (wallet?.found) ages.push(wallet.age_days);
   if (github?.found) ages.push(github.account_age_days);
-  if (problemSolvingData?.found) ages.push(problemSolvingData.account_age_days);
-  if (kaggleData?.found) ages.push(kaggleData.account_age_days);
+  if (problemSolving?.found) ages.push(problemSolving.account_age_days);
+  if (kaggle?.found) ages.push(kaggle.account_age_days);
   
   let consistencyScore = 5.0;
   if (ages.length >= 2) {
@@ -462,7 +469,46 @@ function calculateScores(wallet, github, problemSolvingData, kaggleData) {
     consistencyScore = Math.round(consistency * 15 * 10) / 10;
   }
   
-  const finalScore = Math.round((walletScore + githubScore + problemSolvingScore + kaggleScore + consistencyScore) * 10) / 10;
+  // Calculate normalized final score based on provided categories only
+  const providedCategories = [];
+  let totalPossibleScore = 0;
+  let totalActualScore = 0;
+  
+  if (wallet?.found) {
+    providedCategories.push('wallet');
+    totalPossibleScore += MAX_WALLET;
+    totalActualScore += walletScore;
+  }
+  
+  if (github?.found) {
+    providedCategories.push('github');
+    totalPossibleScore += MAX_GITHUB;
+    totalActualScore += githubScore;
+  }
+  
+  if (problemSolving?.found) {
+    providedCategories.push('problem_solving');
+    totalPossibleScore += MAX_PROBLEM_SOLVING;
+    totalActualScore += problemSolvingScore;
+  }
+  
+  if (kaggle?.found) {
+    providedCategories.push('kaggle');
+    totalPossibleScore += MAX_KAGGLE;
+    totalActualScore += kaggleScore;
+  }
+  
+  // Add consistency score if multiple categories provided
+  if (providedCategories.length >= 2) {
+    totalPossibleScore += MAX_CONSISTENCY;
+    totalActualScore += consistencyScore;
+  }
+  
+  // Normalize to 100-point scale
+  let finalScore = 0;
+  if (totalPossibleScore > 0) {
+    finalScore = Math.round((totalActualScore / totalPossibleScore) * 100 * 10) / 10;
+  }
   
   return {
     wallet_score: walletScore,
@@ -470,7 +516,9 @@ function calculateScores(wallet, github, problemSolvingData, kaggleData) {
     problem_solving_score: problemSolvingScore,
     kaggle_score: kaggleScore,
     consistency_score: consistencyScore,
-    final_score: finalScore
+    final_score: finalScore,
+    max_possible_score: totalPossibleScore,
+    categories_provided: providedCategories.length
   };
 }
 
