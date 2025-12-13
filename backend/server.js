@@ -20,7 +20,7 @@ const LEETCODE_GRAPHQL = 'https://leetcode.com/graphql';
 
 const openai = new OpenAI({
   apiKey: process.env.EMERGENT_LLM_KEY,
-  baseURL: 'https://api.emergentmethods.ai/v1'
+  baseURL: 'https://llm.emergentagi.com/v1'
 });
 
 // Fetch Polygon wallet data
