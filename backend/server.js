@@ -63,6 +63,7 @@ async function fetchWalletData(address) {
       found: true
     };
   } catch (error) {
+    console.error('Polygon fetch error:', error);
     fastify.log.error('Polygon fetch error:', error);
     return { address, age_days: 0, tx_count: 0, found: false, error: error.message };
   }
