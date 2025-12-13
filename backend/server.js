@@ -320,8 +320,7 @@ function createCanonicalArtifact(inputs, scores, roleSignals, aiOutput, timestam
 
 function hashArtifact(artifact) {
   const canonical = JSON.stringify(artifact, Object.keys(artifact).sort());
-  const hash = sha256(new TextEncoder().encode(canonical));
-  return bytesToHex(hash);
+  return crypto.createHash('sha256').update(canonical).digest('hex');
 }
 
 // ============================================
