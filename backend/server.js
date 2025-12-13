@@ -460,8 +460,8 @@ fastify.post('/api/profile', async (request, reply) => {
       artifact,
       artifact_hash: artifactHash,
       platform_history: {
-        first_seen_at: platformHistory?.first_seen_at,
-        compute_count: platformHistory?.compute_count,
+        first_seen_at: platformHistory?.first_seen_at || timestamp,
+        compute_count: platformHistory?.compute_count || 1,
         platform_age_days: platformHistory?.first_seen_at 
           ? Math.floor((Date.now() - new Date(platformHistory.first_seen_at).getTime()) / 86400000)
           : 0
@@ -480,7 +480,7 @@ fastify.post('/api/profile', async (request, reply) => {
           '2. Re-run deterministic computation',
           '3. Re-generate artifact',
           '4. Re-hash artifact',
-          '5. Compare with on-chain hash'
+          '5. Compare with on-chain hash (when deployed)'
         ]
       }
     };
