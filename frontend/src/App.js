@@ -487,7 +487,7 @@ function App() {
                 <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="text-white">GitHub Profile (Optional)</CardTitle>
-                    <CardDescription className="text-slate-400">We'll automatically fetch your public GitHub activity</CardDescription>
+                    <CardDescription className="text-slate-400">We&apos;ll automatically fetch your public GitHub activity</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div>
