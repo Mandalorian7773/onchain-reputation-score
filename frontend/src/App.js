@@ -544,6 +544,26 @@ function App() {
                   </CardContent>
                 </Card>
 
+                <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="text-white">Kaggle Profile (Optional)</CardTitle>
+                    <CardDescription className="text-slate-400">We&apos;ll fetch your data science competitions and contributions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div>
+                      <Label htmlFor="kaggle-username" className="text-slate-300">Kaggle Username</Label>
+                      <Input 
+                        id="kaggle-username" 
+                        placeholder="Your Kaggle username"
+                        value={formData.kaggle_username} 
+                        onChange={(e) => updateField('kaggle_username', e.target.value)} 
+                        className="bg-slate-800 border-slate-700 text-white" 
+                        data-testid="kaggle-username-input" 
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Button type="submit" size="lg" className="w-full" disabled={loading} data-testid="analyze-btn">
                   {loading ? "Analyzing..." : "Analyze Reputation"}
                 </Button>
