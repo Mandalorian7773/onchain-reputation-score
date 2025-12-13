@@ -108,7 +108,7 @@ async function fetchGitHubData(username) {
       found: true
     };
   } catch (error) {
-    fastify.log.error('GitHub fetch error:', error.message);
+    fastify.log.error('GitHub fetch error:', error);
     return { username, found: false, error: error.message };
   }
 }
