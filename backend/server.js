@@ -536,12 +536,20 @@ function evaluateLeetCodeSignal(problemSolvingData) {
     if (rating >= 1800 && totalSolved >= 150) return 'strong';
     if (rating >= 1400 && totalSolved >= 75) return 'medium';
     if (totalSolved >= 30) return 'weak';
-  } else if (platform === 'kaggle') {
-    const competitions = problemSolvingData.competitions || 0;
-    if (competitions >= 10 && totalSolved >= 100) return 'strong';
-    if (competitions >= 5 && totalSolved >= 50) return 'medium';
-    if (totalSolved >= 20) return 'weak';
   }
+  
+  return 'weak';
+}
+
+function evaluateKaggleSignal(kaggleData) {
+  if (!kaggleData?.found) return 'missing';
+  
+  const competitions = kaggleData.competitions || 0;
+  const totalSolved = kaggleData.total_solved || 0;
+  
+  if (competitions >= 10 && totalSolved >= 100) return 'strong';
+  if (competitions >= 5 && totalSolved >= 50) return 'medium';
+  if (totalSolved >= 20) return 'weak';
   
   return 'weak';
 }
