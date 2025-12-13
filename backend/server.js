@@ -354,7 +354,7 @@ async function fetchProblemSolvingData(platform, username) {
 }
 
 // Calculate scores
-function calculateScores(wallet, github, leetcode) {
+function calculateScores(wallet, github, problemSolvingData) {
   // Wallet score (max 50)
   let walletScore = 0;
   if (wallet?.found) {
@@ -372,20 +372,32 @@ function calculateScores(wallet, github, leetcode) {
     githubScore = Math.round((ageScore + repoScore + commitScore) * 10) / 10;
   }
   
-  // LeetCode score (max 35)
-  let leetcodeScore = 0;
-  if (leetcode?.found) {
-    const ageScore = Math.min(leetcode.account_age_days / 365, 1.0) * 10;
-    const totalScore = Math.min(leetcode.total_solved / 500, 1.0) * 15;
-    const difficultyBonus = leetcode.hard > 0 ? Math.min(leetcode.hard / 50, 1.0) * 10 : 0;
-    leetcodeScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
+  // Problem-solving score (max 35)
+  let problemSolvingScore = 0;
+  if (problemSolvingData?.found) {
+    const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
+    const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
+    
+    // Platform-specific difficulty bonus
+    let difficultyBonus = 0;
+    if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
+      difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
+    } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating >= 1400) {
+      difficultyBonus = Math.min((problemSolvingData.rating - 1400) / 1000, 1.0) * 10;
+    } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating >= 1400) {
+      difficultyBonus = Math.min((problemSolvingData.rating - 1400) / 1000, 1.0) * 10;
+    } else if (problemSolvingData.platform === 'kaggle' && problemSolvingData.competitions > 0) {
+      difficultyBonus = Math.min(problemSolvingData.competitions / 20, 1.0) * 10;
+    }
+    
+    problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
   }
   
   // Consistency score (max 15)
   const ages = [];
   if (wallet?.found) ages.push(wallet.age_days);
   if (github?.found) ages.push(github.account_age_days);
-  if (leetcode?.found) ages.push(leetcode.account_age_days);
+  if (problemSolvingData?.found) ages.push(problemSolvingData.account_age_days);
   
   let consistencyScore = 5.0;
   if (ages.length >= 2) {
@@ -394,12 +406,12 @@ function calculateScores(wallet, github, leetcode) {
     consistencyScore = Math.round(consistency * 15 * 10) / 10;
   }
   
-  const finalScore = Math.round((walletScore + githubScore + leetcodeScore + consistencyScore) * 10) / 10;
+  const finalScore = Math.round((walletScore + githubScore + problemSolvingScore + consistencyScore) * 10) / 10;
   
   return {
     wallet_score: walletScore,
     github_score: githubScore,
-    leetcode_score: leetcodeScore,
+    problem_solving_score: problemSolvingScore,
     consistency_score: consistencyScore,
     final_score: finalScore
   };
