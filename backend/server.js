@@ -490,7 +490,7 @@ function evaluateConsistency(wallet, github, leetcode) {
   return 'weak';
 }
 
-function detectAnomalies(wallet, github, leetcode) {
+function detectAnomalies(wallet, github, problemSolvingData) {
   const anomalies = [];
   
   // Very new wallet with high activity
@@ -503,16 +503,16 @@ function detectAnomalies(wallet, github, leetcode) {
     anomalies.push('new GitHub account with unusually high repository count');
   }
   
-  // Suspicious LeetCode pattern
-  if (leetcode?.found && leetcode.account_age_days < 90 && leetcode.total_solved > 300) {
-    anomalies.push('recent LeetCode account with unusually high solve count');
+  // Suspicious problem-solving platform pattern
+  if (problemSolvingData?.found && problemSolvingData.account_age_days < 90 && problemSolvingData.total_solved > 300) {
+    anomalies.push(`recent ${problemSolvingData.platform} account with unusually high solve count`);
   }
   
   // Inconsistent account ages
   const ages = [];
   if (wallet?.found) ages.push({ name: 'wallet', age: wallet.age_days });
   if (github?.found) ages.push({ name: 'github', age: github.account_age_days });
-  if (leetcode?.found) ages.push({ name: 'leetcode', age: leetcode.account_age_days });
+  if (problemSolvingData?.found) ages.push({ name: problemSolvingData.platform, age: problemSolvingData.account_age_days });
   
   if (ages.length >= 2) {
     const sorted = ages.sort((a, b) => a.age - b.age);
