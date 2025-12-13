@@ -1,72 +1,179 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime, timezone
-
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+class WalletInput(BaseModel):
+    address: str
+    age_days: int
+    tx_count: int
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+class GitHubInput(BaseModel):
+    username: Optional[str] = None
+    account_age_days: Optional[int] = None
+    public_repos: Optional[int] = None
+    total_commits_estimate: Optional[int] = None
+
+class ProblemSolvingInput(BaseModel):
+    platform: Optional[str] = None
+    username: Optional[str] = None
+    account_age_days: Optional[int] = None
+    total_solved: Optional[int] = None
+    easy: Optional[int] = None
+    medium: Optional[int] = None
+    hard: Optional[int] = None
+
+class ReputationRequest(BaseModel):
+    wallet: WalletInput
+    github: GitHubInput
+    problem_solving: ProblemSolvingInput
+
+class ReputationResponse(BaseModel):
+    wallet_address: str
+    calculated_scores: dict
+    analysis: dict
+    timestamp: str
+
+def calculate_wallet_score(wallet: WalletInput) -> float:
+    age_score = min(wallet.age_days / 365, 1.0) * 30
+    tx_score = min(wallet.tx_count / 1000, 1.0) * 20
+    return round(age_score + tx_score, 2)
+
+def calculate_github_score(github: GitHubInput) -> float:
+    if not github.username:
+        return 0.0
+    age_score = min((github.account_age_days or 0) / 365, 1.0) * 15
+    repo_score = min((github.public_repos or 0) / 50, 1.0) * 10
+    commit_score = min((github.total_commits_estimate or 0) / 1000, 1.0) * 25
+    return round(age_score + repo_score + commit_score, 2)
+
+def calculate_problem_solving_score(ps: ProblemSolvingInput) -> float:
+    if not ps.platform:
+        return 0.0
+    age_score = min((ps.account_age_days or 0) / 365, 1.0) * 10
+    total_score = min((ps.total_solved or 0) / 500, 1.0) * 15
+    difficulty_bonus = 0
+    if ps.hard and ps.hard > 0:
+        difficulty_bonus = min(ps.hard / 50, 1.0) * 10
+    return round(age_score + total_score + difficulty_bonus, 2)
+
+def calculate_consistency_score(wallet: WalletInput, github: GitHubInput, ps: ProblemSolvingInput) -> float:
+    ages = [wallet.age_days]
+    if github.account_age_days:
+        ages.append(github.account_age_days)
+    if ps.account_age_days:
+        ages.append(ps.account_age_days)
+    if len(ages) < 2:
+        return 5.0
+    max_diff = max(ages) - min(ages)
+    consistency = max(0, 1 - (max_diff / 730))
+    return round(consistency * 10, 2)
+
+async def get_llm_analysis(data: dict) -> dict:
+    system_prompt = """You are the core Reputation Reasoning Agent for an on-chain reputation system.
+
+Your role is to analyze signal quality, consistency, and confidence across multiple technical reputation signals.
+You do NOT calculate numeric scores, generate UI, or make subjective judgments about people.
+
+This system is transparent, explainable, and assistive.
+
+You will receive a JSON object with wallet, github, problem_solving signals and calculated scores.
+
+Your tasks:
+1) Evaluate SIGNAL QUALITY for each category (strong/medium/weak/missing)
+2) Analyze PROBLEM-SOLVING SIGNAL as a skill indicator
+3) Detect ANOMALIES (e.g., very new accounts with extreme activity)
+4) Assign OVERALL CONFIDENCE LEVEL (high/medium/low)
+5) Produce STRUCTURED, MACHINE-READABLE output
+
+Output ONLY valid JSON in this exact structure:
+{
+  "confidence_level": "high | medium | low",
+  "signal_strength": {
+    "wallet": "strong | medium | weak | missing",
+    "github": "strong | medium | weak | missing",
+    "problem_solving": "strong | medium | weak | missing",
+    "consistency": "strong | medium | weak"
+  },
+  "anomalies_detected": ["short factual description"],
+  "confidence_reasoning": ["short, neutral, factual reason"],
+  "notes": ["optional technical notes"]
+}
+
+Be conservative, cautious, and factual. Do NOT hallucinate missing data."""
     
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"reputation_{data['wallet']['address']}",
+        system_message=system_prompt
+    )
+    chat.with_model("openai", "gpt-4o")
+    
+    user_message = UserMessage(text=json.dumps(data))
+    response = await chat.send_message(user_message)
+    
+    return json.loads(response)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+@api_router.post("/analyze", response_model=ReputationResponse)
+async def analyze_reputation(req: ReputationRequest):
+    wallet_score = calculate_wallet_score(req.wallet)
+    github_score = calculate_github_score(req.github)
+    ps_score = calculate_problem_solving_score(req.problem_solving)
+    consistency_score = calculate_consistency_score(req.wallet, req.github, req.problem_solving)
+    final_score = wallet_score + github_score + ps_score + consistency_score
+    
+    input_data = {
+        "wallet": req.wallet.model_dump(),
+        "github": req.github.model_dump(),
+        "problem_solving": req.problem_solving.model_dump(),
+        "calculated_scores": {
+            "wallet_score": wallet_score,
+            "github_score": github_score,
+            "problem_solving_score": ps_score,
+            "consistency_score": consistency_score,
+            "final_score": final_score
+        }
+    }
+    
+    analysis = await get_llm_analysis(input_data)
+    
+    result = {
+        "wallet_address": req.wallet.address,
+        "calculated_scores": input_data["calculated_scores"],
+        "analysis": analysis,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.reputation_analyses.insert_one({
+        **result,
+        "_timestamp_store": result["timestamp"]
+    })
+    
+    return result
 
-# Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Reputation System API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
 app.include_router(api_router)
 
 app.add_middleware(
@@ -77,7 +184,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
