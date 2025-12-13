@@ -665,7 +665,7 @@ function generateReasoning(signals, anomalies, wallet, github, problemSolvingDat
   return reasoning;
 }
 
-function generateNotes(wallet, github, problemSolvingData) {
+function generateNotes(wallet, github, problemSolvingData, kaggleData) {
   const notes = [];
   
   if (wallet?.found && wallet.tx_count === 0) {
@@ -692,14 +692,16 @@ function generateNotes(wallet, github, problemSolvingData) {
       if (problemSolvingData.rating >= 2000) {
         notes.push('CodeChef 5-star or higher rating indicates strong problem-solving abilities');
       }
-    } else if (platform === 'kaggle') {
-      if (problemSolvingData.competitions >= 10) {
-        notes.push('Active Kaggle competition participation demonstrates practical data science skills');
-      }
     }
   }
   
-  if (!wallet?.found && !github?.found && !problemSolvingData?.found) {
+  if (kaggleData?.found) {
+    if (kaggleData.competitions >= 10) {
+      notes.push('Active Kaggle competition participation demonstrates practical data science skills');
+    }
+  }
+  
+  if (!wallet?.found && !github?.found && !problemSolvingData?.found && !kaggleData?.found) {
     notes.push('Insufficient data to perform comprehensive reputation analysis');
   }
   
