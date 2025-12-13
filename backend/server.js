@@ -147,8 +147,6 @@ async function fetchLeetCodeData(username) {
     const medium = stats.find(s => s.difficulty === 'Medium')?.count || 0;
     const hard = stats.find(s => s.difficulty === 'Hard')?.count || 0;
     
-    // Estimate account age (LeetCode API doesn't provide this directly)
-    // Use a heuristic: ~365 days for every 100 problems solved
     const totalSolved = easy + medium + hard;
     const estimatedAgeDays = Math.max(Math.floor(totalSolved / 100 * 365), 30);
     
@@ -163,8 +161,195 @@ async function fetchLeetCodeData(username) {
       found: true
     };
   } catch (error) {
+    console.error('LeetCode fetch error:', error);
     fastify.log.error('LeetCode fetch error:', error);
-    return { username, found: false, error: error.message };
+    return { username, platform: 'leetcode', found: false, error: error.message };
+  }
+}
+
+// Fetch Codeforces data
+async function fetchCodeforcesData(username) {
+  if (!username) return null;
+  
+  try {
+    const userResponse = await axios.get(`https://codeforces.com/api/user.info?handles=${username}`);
+    const submissionsResponse = await axios.get(`https://codeforces.com/api/user.status?handle=${username}&from=1&count=10000`);
+    
+    if (userResponse.data.status !== 'OK') {
+      return { username, platform: 'codeforces', found: false, error: 'User not found' };
+    }
+    
+    const user = userResponse.data.result[0];
+    const submissions = submissionsResponse.data.result || [];
+    
+    // Count unique solved problems
+    const solvedProblems = new Set();
+    submissions.forEach(sub => {
+      if (sub.verdict === 'OK') {
+        solvedProblems.add(`${sub.problem.contestId}-${sub.problem.index}`);
+      }
+    });
+    
+    // Estimate account age from registration time
+    const registrationTime = user.registrationTimeSeconds * 1000;
+    const ageDays = Math.floor((Date.now() - registrationTime) / 86400000);
+    
+    // Codeforces doesn't have easy/medium/hard but has rating ranges
+    // Approximate: <1200 = easy, 1200-1900 = medium, >1900 = hard
+    let easy = 0, medium = 0, hard = 0;
+    submissions.forEach(sub => {
+      if (sub.verdict === 'OK' && sub.problem.rating) {
+        if (sub.problem.rating < 1200) easy++;
+        else if (sub.problem.rating <= 1900) medium++;
+        else hard++;
+      }
+    });
+    
+    return {
+      platform: 'codeforces',
+      username,
+      account_age_days: ageDays,
+      total_solved: solvedProblems.size,
+      easy: Math.floor(easy / 3), // Approximate unique problems
+      medium: Math.floor(medium / 3),
+      hard: Math.floor(hard / 3),
+      rating: user.rating || 0,
+      max_rating: user.maxRating || 0,
+      found: true
+    };
+  } catch (error) {
+    console.error('Codeforces fetch error:', error);
+    fastify.log.error('Codeforces fetch error:', error);
+    return { username, platform: 'codeforces', found: false, error: error.message };
+  }
+}
+
+// Fetch CodeChef data
+async function fetchCodeChefData(username) {
+  if (!username) return null;
+  
+  try {
+    // CodeChef doesn't have a public API, so we'll scrape the public profile
+    const response = await axios.get(`https://www.codechef.com/users/${username}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    
+    const html = response.data;
+    
+    // Extract rating
+    const ratingMatch = html.match(/rating-number">(\d+)/);
+    const rating = ratingMatch ? parseInt(ratingMatch[1]) : 0;
+    
+    // Extract problems solved
+    const solvedMatch = html.match(/Problems Solved.*?(\d+)/s);
+    const totalSolved = solvedMatch ? parseInt(solvedMatch[1]) : 0;
+    
+    // Estimate account age (CodeChef doesn't expose this easily)
+    const estimatedAgeDays = Math.max(Math.floor(totalSolved / 50 * 365), 30);
+    
+    // Estimate difficulty distribution based on rating
+    let easy = 0, medium = 0, hard = 0;
+    if (rating < 1400) {
+      easy = Math.floor(totalSolved * 0.6);
+      medium = Math.floor(totalSolved * 0.3);
+      hard = Math.floor(totalSolved * 0.1);
+    } else if (rating < 1800) {
+      easy = Math.floor(totalSolved * 0.3);
+      medium = Math.floor(totalSolved * 0.5);
+      hard = Math.floor(totalSolved * 0.2);
+    } else {
+      easy = Math.floor(totalSolved * 0.2);
+      medium = Math.floor(totalSolved * 0.4);
+      hard = Math.floor(totalSolved * 0.4);
+    }
+    
+    return {
+      platform: 'codechef',
+      username,
+      account_age_days: estimatedAgeDays,
+      total_solved: totalSolved,
+      easy,
+      medium,
+      hard,
+      rating,
+      found: true
+    };
+  } catch (error) {
+    console.error('CodeChef fetch error:', error);
+    fastify.log.error('CodeChef fetch error:', error);
+    return { username, platform: 'codechef', found: false, error: error.message };
+  }
+}
+
+// Fetch Kaggle data
+async function fetchKaggleData(username) {
+  if (!username) return null;
+  
+  try {
+    const response = await axios.get(`https://www.kaggle.com/${username}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    
+    const html = response.data;
+    
+    // Extract tier/rank
+    const tierMatch = html.match(/Tier:\s*([^<]+)/i) || html.match(/Ranking:\s*([^<]+)/i);
+    const tier = tierMatch ? tierMatch[1].trim() : 'Novice';
+    
+    // Extract competitions
+    const competitionsMatch = html.match(/competitions?[^>]*>(\d+)/i);
+    const competitions = competitionsMatch ? parseInt(competitionsMatch[1]) : 0;
+    
+    // Extract datasets
+    const datasetsMatch = html.match(/datasets?[^>]*>(\d+)/i);
+    const datasets = datasetsMatch ? parseInt(datasetsMatch[1]) : 0;
+    
+    // Extract notebooks
+    const notebooksMatch = html.match(/notebooks?[^>]*>(\d+)/i);
+    const notebooks = notebooksMatch ? parseInt(notebooksMatch[1]) : 0;
+    
+    // Calculate total activity
+    const totalActivity = competitions * 3 + datasets * 2 + notebooks;
+    
+    // Estimate account age
+    const estimatedAgeDays = Math.max(Math.floor(totalActivity / 20 * 365), 30);
+    
+    // Map to problem-solving equivalent
+    const totalSolved = competitions * 10 + datasets * 5 + notebooks * 2;
+    
+    return {
+      platform: 'kaggle',
+      username,
+      account_age_days: estimatedAgeDays,
+      total_solved: totalSolved,
+      competitions,
+      datasets,
+      notebooks,
+      tier,
+      found: true
+    };
+  } catch (error) {
+    console.error('Kaggle fetch error:', error);
+    fastify.log.error('Kaggle fetch error:', error);
+    return { username, platform: 'kaggle', found: false, error: error.message };
+  }
+}
+
+// Unified problem-solving data fetcher
+async function fetchProblemSolvingData(platform, username) {
+  if (!platform || !username) return null;
+  
+  switch (platform.toLowerCase()) {
+    case 'leetcode':
+      return fetchLeetCodeData(username);
+    case 'codeforces':
+      return fetchCodeforcesData(username);
+    case 'codechef':
+      return fetchCodeChefData(username);
+    case 'kaggle':
+      return fetchKaggleData(username);
+    default:
+      return { platform, username, found: false, error: 'Unsupported platform' };
   }
 }
 
