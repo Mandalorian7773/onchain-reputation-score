@@ -652,8 +652,8 @@ function App() {
                         <p className="text-white text-xl font-bold">{analysis.calculated_scores.github_score}</p>
                       </div>
                       <div className="bg-slate-800/50 p-3 rounded-lg">
-                        <p className="text-slate-400 text-sm">LeetCode</p>
-                        <p className="text-white text-xl font-bold">{analysis.calculated_scores.leetcode_score}</p>
+                        <p className="text-slate-400 text-sm">Problem Solving</p>
+                        <p className="text-white text-xl font-bold">{analysis.calculated_scores.problem_solving_score || analysis.calculated_scores.leetcode_score || 0}</p>
                       </div>
                       <div className="bg-slate-800/50 p-3 rounded-lg">
                         <p className="text-slate-400 text-sm">Consistency</p>
