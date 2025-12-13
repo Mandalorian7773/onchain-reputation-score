@@ -17,11 +17,6 @@ const POLYGON_RPC = 'https://polygon-rpc.com';
 const GITHUB_API = 'https://api.github.com';
 const LEETCODE_GRAPHQL = 'https://leetcode.com/graphql';
 
-const openai = new OpenAI({
-  apiKey: process.env.EMERGENT_LLM_KEY,
-  baseURL: 'https://integrations.emergentagent.com/v1'
-});
-
 // Fetch Polygon wallet data
 async function fetchWalletData(address) {
   try {
