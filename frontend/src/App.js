@@ -322,7 +322,7 @@ function App() {
               <CardDescription className="text-slate-400">
                 {walletConnected 
                   ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                  : "Connect your wallet for on-chain reputation analysis, or proceed with GitHub/LeetCode only"
+                  : "Connect your wallet for on-chain reputation analysis, or proceed with GitHub/problem-solving platforms only"
                 }
               </CardDescription>
             </CardHeader>
