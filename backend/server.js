@@ -577,7 +577,7 @@ function generateReasoning(signals, anomalies, wallet, github, leetcode) {
   return reasoning;
 }
 
-function generateNotes(wallet, github, leetcode) {
+function generateNotes(wallet, github, problemSolvingData) {
   const notes = [];
   
   if (wallet?.found && wallet.tx_count === 0) {
@@ -588,14 +588,30 @@ function generateNotes(wallet, github, leetcode) {
     notes.push('GitHub activity detected but commit count estimation unavailable');
   }
   
-  if (leetcode?.found) {
-    const difficulty_ratio = leetcode.hard / Math.max(leetcode.total_solved, 1);
-    if (difficulty_ratio > 0.3) {
-      notes.push('High proportion of hard problems solved indicates strong algorithmic skills');
+  if (problemSolvingData?.found) {
+    const platform = problemSolvingData.platform;
+    
+    if (platform === 'leetcode') {
+      const difficulty_ratio = problemSolvingData.hard / Math.max(problemSolvingData.total_solved, 1);
+      if (difficulty_ratio > 0.3) {
+        notes.push('High proportion of hard problems solved indicates strong algorithmic skills');
+      }
+    } else if (platform === 'codeforces') {
+      if (problemSolvingData.rating >= 2100) {
+        notes.push('Codeforces Master or higher rating indicates exceptional competitive programming skills');
+      }
+    } else if (platform === 'codechef') {
+      if (problemSolvingData.rating >= 2000) {
+        notes.push('CodeChef 5-star or higher rating indicates strong problem-solving abilities');
+      }
+    } else if (platform === 'kaggle') {
+      if (problemSolvingData.competitions >= 10) {
+        notes.push('Active Kaggle competition participation demonstrates practical data science skills');
+      }
     }
   }
   
-  if (!wallet?.found && !github?.found && !leetcode?.found) {
+  if (!wallet?.found && !github?.found && !problemSolvingData?.found) {
     notes.push('Insufficient data to perform comprehensive reputation analysis');
   }
   
