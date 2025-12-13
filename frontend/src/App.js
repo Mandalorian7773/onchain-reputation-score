@@ -526,7 +526,6 @@ function App() {
                             <SelectItem value="leetcode" className="text-white hover:bg-slate-700">LeetCode</SelectItem>
                             <SelectItem value="codeforces" className="text-white hover:bg-slate-700">Codeforces</SelectItem>
                             <SelectItem value="codechef" className="text-white hover:bg-slate-700">CodeChef</SelectItem>
-                            <SelectItem value="kaggle" className="text-white hover:bg-slate-700">Kaggle</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
