@@ -609,42 +609,43 @@ fastify.get('/api', async (request, reply) => {
 
 // Main analyze endpoint
 fastify.post('/api/analyze', async (request, reply) => {
-  const { wallet_address, github_username, leetcode_username } = request.body;
+  const { wallet_address, github_username, problem_solving_platform, problem_solving_username } = request.body;
   
-  if (!wallet_address && !github_username && !leetcode_username) {
+  if (!wallet_address && !github_username && !problem_solving_username) {
     return reply.code(400).send({ error: 'At least one input required' });
   }
   
   try {
     // Fetch data in parallel
-    const [walletData, githubData, leetcodeData] = await Promise.all([
+    const [walletData, githubData, problemSolvingData] = await Promise.all([
       wallet_address ? fetchWalletData(wallet_address) : Promise.resolve(null),
       github_username ? fetchGitHubData(github_username) : Promise.resolve(null),
-      leetcode_username ? fetchLeetCodeData(leetcode_username) : Promise.resolve(null)
+      problem_solving_username ? fetchProblemSolvingData(problem_solving_platform || 'leetcode', problem_solving_username) : Promise.resolve(null)
     ]);
     
     // Calculate scores
-    const scores = calculateScores(walletData, githubData, leetcodeData);
+    const scores = calculateScores(walletData, githubData, problemSolvingData);
     
     // Prepare data for AI
     const analysisInput = {
       wallet: walletData || { found: false },
       github: githubData || { found: false },
-      problem_solving: leetcodeData || { found: false },
+      problem_solving: problemSolvingData || { found: false },
       calculated_scores: scores
     };
     
     // Get deterministic reasoning analysis
-    const aiAnalysis = performReasoningAnalysis(walletData, githubData, leetcodeData, scores);
+    const aiAnalysis = performReasoningAnalysis(walletData, githubData, problemSolvingData, scores);
     
     return {
       wallet_address: wallet_address || null,
       github_username: github_username || null,
-      leetcode_username: leetcode_username || null,
+      problem_solving_platform: problem_solving_platform || 'leetcode',
+      problem_solving_username: problem_solving_username || null,
       fetched_data: {
         wallet: walletData,
         github: githubData,
-        leetcode: leetcodeData
+        problem_solving: problemSolvingData
       },
       calculated_scores: scores,
       analysis: aiAnalysis,
