@@ -4,8 +4,7 @@ import { ethers } from 'ethers';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { MongoClient } from 'mongodb';
-import { sha256 } from '@noble/hashes/sha2';
-import { bytesToHex } from '@noble/hashes/utils';
+import crypto from 'crypto';
 
 dotenv.config();
 
