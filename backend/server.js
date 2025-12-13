@@ -449,8 +449,7 @@ fastify.post('/api/profile', async (request, reply) => {
     const profileId = github_username || leetcode_username || wallet_address.slice(0, 10);
     
     // 8. Update platform history in MongoDB
-    await updatePlatformHistory(profileId, artifactHash);
-    const platformHistory = await getPlatformHistory(profileId);
+    const platformHistory = await updatePlatformHistory(profileId, artifactHash);
     
     // 9. Anchor hash on blockchain (Polygon)
     const blockchainProof = await anchorHashOnChain(profileId, artifactHash);
