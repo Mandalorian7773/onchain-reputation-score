@@ -425,8 +425,8 @@ fastify.post('/api/analyze', async (request, reply) => {
       calculated_scores: scores
     };
     
-    // Get AI reasoning
-    const aiAnalysis = await getAIReasoning(analysisInput);
+    // Get deterministic reasoning analysis
+    const aiAnalysis = performReasoningAnalysis(walletData, githubData, leetcodeData, scores);
     
     return {
       wallet_address: wallet_address || null,
