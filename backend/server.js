@@ -399,7 +399,7 @@ async function fetchProblemSolvingData(platform, username) {
 }
 
 // Calculate scores
-function calculateScores(wallet, github, problemSolvingData) {
+function calculateScores(wallet, github, problemSolvingData, kaggleData) {
   // Wallet score (max 40)
   let walletScore = 0;
   if (wallet?.found) {
@@ -419,32 +419,33 @@ function calculateScores(wallet, github, problemSolvingData) {
     githubScore = Math.round((ageScore + repoScore + commitScore + prScore + contributionScore) * 10) / 10;
   }
   
-  // Problem-solving score (max 35 for coding platforms, max 30 for Kaggle)
+  // Problem-solving score (max 35 for coding platforms)
   let problemSolvingScore = 0;
   if (problemSolvingData?.found) {
-    if (problemSolvingData.platform === 'kaggle') {
-      // Kaggle scoring (max 30)
-      const competitionScore = Math.min((problemSolvingData.competitions || 0) / 20, 1.0) * 12;
-      const datasetScore = Math.min((problemSolvingData.datasets || 0) / 30, 1.0) * 8;
-      const notebookScore = Math.min((problemSolvingData.notebooks || 0) / 50, 1.0) * 10;
-      problemSolvingScore = Math.round((competitionScore + datasetScore + notebookScore) * 10) / 10;
-    } else {
-      // Coding platform scoring (max 35)
-      const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
-      const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
-      
-      // Platform-specific difficulty bonus
-      let difficultyBonus = 0;
-      if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
-        difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
-      } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating) {
-        difficultyBonus = Math.min(problemSolvingData.rating / 3000, 1.0) * 10;
-      } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating) {
-        difficultyBonus = Math.min(problemSolvingData.rating / 2500, 1.0) * 10;
-      }
-      
-      problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
+    // Coding platform scoring (max 35)
+    const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
+    const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
+    
+    // Platform-specific difficulty bonus
+    let difficultyBonus = 0;
+    if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
+      difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
+    } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating) {
+      difficultyBonus = Math.min(problemSolvingData.rating / 3000, 1.0) * 10;
+    } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating) {
+      difficultyBonus = Math.min(problemSolvingData.rating / 2500, 1.0) * 10;
     }
+    
+    problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
+  }
+  
+  // Kaggle score (max 30)
+  let kaggleScore = 0;
+  if (kaggleData?.found) {
+    const competitionScore = Math.min((kaggleData.competitions || 0) / 20, 1.0) * 12;
+    const datasetScore = Math.min((kaggleData.datasets || 0) / 30, 1.0) * 8;
+    const notebookScore = Math.min((kaggleData.notebooks || 0) / 50, 1.0) * 10;
+    kaggleScore = Math.round((competitionScore + datasetScore + notebookScore) * 10) / 10;
   }
   
   // Consistency score (max 15)
@@ -452,6 +453,7 @@ function calculateScores(wallet, github, problemSolvingData) {
   if (wallet?.found) ages.push(wallet.age_days);
   if (github?.found) ages.push(github.account_age_days);
   if (problemSolvingData?.found) ages.push(problemSolvingData.account_age_days);
+  if (kaggleData?.found) ages.push(kaggleData.account_age_days);
   
   let consistencyScore = 5.0;
   if (ages.length >= 2) {
@@ -460,12 +462,13 @@ function calculateScores(wallet, github, problemSolvingData) {
     consistencyScore = Math.round(consistency * 15 * 10) / 10;
   }
   
-  const finalScore = Math.round((walletScore + githubScore + problemSolvingScore + consistencyScore) * 10) / 10;
+  const finalScore = Math.round((walletScore + githubScore + problemSolvingScore + kaggleScore + consistencyScore) * 10) / 10;
   
   return {
     wallet_score: walletScore,
     github_score: githubScore,
     problem_solving_score: problemSolvingScore,
+    kaggle_score: kaggleScore,
     consistency_score: consistencyScore,
     final_score: finalScore
   };
