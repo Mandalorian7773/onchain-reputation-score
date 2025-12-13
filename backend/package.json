@@ -7,11 +7,12 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "fastify": "^4.28.1",
     "@fastify/cors": "^9.0.1",
     "axios": "^1.7.2",
-    "ethers": "^6.13.0",
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.0",
+    "fastify": "^4.28.1",
+    "mongodb": "^7.0.0",
     "openai": "^4.52.0"
   }
 }
