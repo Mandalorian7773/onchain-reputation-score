@@ -347,7 +347,7 @@ async function updatePlatformHistory(profileId, hash) {
     const existing = await db.platform_history.findOne({ profile_id: profileId });
     
     if (existing) {
-      await db.platform_history.updateOne(
+      const updated = await db.platform_history.findOneAndUpdate(
         { profile_id: profileId },
         {
           $set: { latest_hash: hash },
@@ -355,22 +355,27 @@ async function updatePlatformHistory(profileId, hash) {
           $push: {
             hash_history: {
               $each: [{ hash, timestamp }],
-              $slice: -50 // Keep last 50
+              $slice: -50
             }
           }
-        }
+        },
+        { returnDocument: 'after' }
       );
+      return updated;
     } else {
-      await db.platform_history.insertOne({
+      const newDoc = {
         profile_id: profileId,
         first_seen_at: timestamp,
         compute_count: 1,
         latest_hash: hash,
         hash_history: [{ hash, timestamp }]
-      });
+      };
+      await db.platform_history.insertOne(newDoc);
+      return newDoc;
     }
   } catch (error) {
     fastify.log.error('Platform history update error:', error);
+    return null;
   }
 }
 
