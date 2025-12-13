@@ -8,7 +8,9 @@
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
+    "@noble/hashes": "^2.0.1",
     "axios": "^1.7.2",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.0",
     "fastify": "^4.28.1",
