@@ -749,7 +749,7 @@ fastify.post('/api/analyze', async (request, reply) => {
     // Get deterministic reasoning analysis
     const aiAnalysis = performReasoningAnalysis(walletData, githubData, problemSolvingData, kaggleData, scores);
     
-    return {
+    const result = {
       wallet_address: wallet_address || null,
       github_username: github_username || null,
       problem_solving_platform: problem_solving_platform || null,
@@ -765,6 +765,29 @@ fastify.post('/api/analyze', async (request, reply) => {
       analysis: aiAnalysis,
       timestamp: new Date().toISOString()
     };
+    
+    // Store in MongoDB for historical tracking
+    try {
+      const historyDoc = {
+        wallet_address: wallet_address || null,
+        github_username: github_username || null,
+        problem_solving_username: problem_solving_username || null,
+        kaggle_username: kaggle_username || null,
+        scores: {
+          wallet: scores.wallet_score,
+          github: scores.github_score,
+          problem_solving: scores.problem_solving_score,
+          kaggle: scores.kaggle_score,
+          overall: scores.overall_score
+        },
+        timestamp: new Date()
+      };
+      await db.reputation_history.insertOne(historyDoc);
+    } catch (dbError) {
+      fastify.log.warn('Failed to store history:', dbError.message);
+    }
+    
+    return result;
   } catch (error) {
     fastify.log.error('Analysis error:', error);
     return reply.code(500).send({ error: 'Analysis failed', details: error.message });
