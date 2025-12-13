@@ -340,7 +340,7 @@ async function getPlatformHistory(profileId) {
   }
 }
 
-async function updatePlatformHistory(profileId, hash) {
+async function updatePlatformHistory(profileId, hash, inputs) {
   const timestamp = new Date();
   
   try {
@@ -351,7 +351,10 @@ async function updatePlatformHistory(profileId, hash) {
       const updated = await collection.findOneAndUpdate(
         { profile_id: profileId },
         {
-          $set: { latest_hash: hash },
+          $set: { 
+            latest_hash: hash,
+            latest_inputs: inputs
+          },
           $inc: { compute_count: 1 },
           $push: {
             hash_history: {
@@ -369,6 +372,7 @@ async function updatePlatformHistory(profileId, hash) {
         first_seen_at: timestamp,
         compute_count: 1,
         latest_hash: hash,
+        latest_inputs: inputs,
         hash_history: [{ hash, timestamp }]
       };
       await collection.insertOne(newDoc);
