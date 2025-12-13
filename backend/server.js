@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 
 dotenv.config();
 
@@ -12,6 +13,11 @@ await fastify.register(cors, {
   origin: process.env.CORS_ORIGINS?.split(',') || '*',
   credentials: true
 });
+
+// MongoDB connection
+const mongoClient = new MongoClient(process.env.MONGO_URL || 'mongodb://localhost:27017');
+await mongoClient.connect();
+const db = mongoClient.db(process.env.DB_NAME || 'reputation_db');
 
 const POLYGON_RPC = 'https://polygon-rpc.com';
 const GITHUB_API = 'https://api.github.com';
