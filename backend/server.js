@@ -344,10 +344,11 @@ async function updatePlatformHistory(profileId, hash) {
   const timestamp = new Date();
   
   try {
-    const existing = await db.platform_history.findOne({ profile_id: profileId });
+    const collection = db.collection('platform_history');
+    const existing = await collection.findOne({ profile_id: profileId });
     
     if (existing) {
-      const updated = await db.platform_history.findOneAndUpdate(
+      const updated = await collection.findOneAndUpdate(
         { profile_id: profileId },
         {
           $set: { latest_hash: hash },
@@ -370,7 +371,7 @@ async function updatePlatformHistory(profileId, hash) {
         latest_hash: hash,
         hash_history: [{ hash, timestamp }]
       };
-      await db.platform_history.insertOne(newDoc);
+      await collection.insertOne(newDoc);
       return newDoc;
     }
   } catch (error) {
