@@ -636,7 +636,19 @@ function App() {
                       {analysis.fetched_data?.github && (
                         <div className="bg-slate-800/50 p-3 rounded-lg">
                           <p className="text-slate-400 text-sm mb-1">GitHub</p>
-                          <p className="text-white">{analysis.fetched_data.github.found ? `${analysis.fetched_data.github.public_repos} repos, ~${analysis.fetched_data.github.total_commits_estimate} commits` : 'Not found'}</p>
+                          {analysis.fetched_data.github.found ? (
+                            <div className="text-white space-y-1">
+                              <p>{analysis.fetched_data.github.public_repos} repos, ~{analysis.fetched_data.github.total_commits_estimate} commits</p>
+                              {analysis.fetched_data.github.total_prs > 0 && (
+                                <p className="text-sm">📝 {analysis.fetched_data.github.total_prs} PRs ({analysis.fetched_data.github.merged_prs} merged, {analysis.fetched_data.github.open_prs} open)</p>
+                              )}
+                              {analysis.fetched_data.github.contributed_repos_count > 0 && (
+                                <p className="text-sm">🤝 Contributed to {analysis.fetched_data.github.contributed_repos_count} external repos</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-white">Not found</p>
+                          )}
                         </div>
                       )}
                       {analysis.fetched_data?.problem_solving && (
