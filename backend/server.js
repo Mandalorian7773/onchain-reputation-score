@@ -444,11 +444,35 @@ function evaluateGitHubSignal(github) {
   return 'weak';
 }
 
-function evaluateLeetCodeSignal(leetcode) {
-  if (!leetcode?.found) return 'missing';
-  if (leetcode.total_solved >= 200 && leetcode.hard >= 20) return 'strong';
-  if (leetcode.total_solved >= 100 && leetcode.hard >= 10) return 'medium';
-  if (leetcode.total_solved >= 30) return 'weak';
+function evaluateLeetCodeSignal(problemSolvingData) {
+  if (!problemSolvingData?.found) return 'missing';
+  
+  const platform = problemSolvingData.platform;
+  const totalSolved = problemSolvingData.total_solved || 0;
+  
+  // Platform-specific evaluation
+  if (platform === 'leetcode') {
+    const hard = problemSolvingData.hard || 0;
+    if (totalSolved >= 200 && hard >= 20) return 'strong';
+    if (totalSolved >= 100 && hard >= 10) return 'medium';
+    if (totalSolved >= 30) return 'weak';
+  } else if (platform === 'codeforces') {
+    const rating = problemSolvingData.rating || 0;
+    if (rating >= 1900 && totalSolved >= 100) return 'strong';
+    if (rating >= 1400 && totalSolved >= 50) return 'medium';
+    if (totalSolved >= 20) return 'weak';
+  } else if (platform === 'codechef') {
+    const rating = problemSolvingData.rating || 0;
+    if (rating >= 1800 && totalSolved >= 150) return 'strong';
+    if (rating >= 1400 && totalSolved >= 75) return 'medium';
+    if (totalSolved >= 30) return 'weak';
+  } else if (platform === 'kaggle') {
+    const competitions = problemSolvingData.competitions || 0;
+    if (competitions >= 10 && totalSolved >= 100) return 'strong';
+    if (competitions >= 5 && totalSolved >= 50) return 'medium';
+    if (totalSolved >= 20) return 'weak';
+  }
+  
   return 'weak';
 }
 
