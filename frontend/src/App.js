@@ -208,6 +208,32 @@ function App() {
                   <Separator className="bg-slate-700" />
 
                   <div>
+                    <h3 className="text-white font-semibold mb-3">Fetched Data</h3>
+                    <div className="space-y-3">
+                      {analysis.fetched_data?.wallet && (
+                        <div className="bg-slate-800/50 p-3 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">Wallet (Polygon)</p>
+                          <p className="text-white">{analysis.fetched_data.wallet.found ? `${analysis.fetched_data.wallet.age_days} days old, ${analysis.fetched_data.wallet.tx_count} transactions` : 'Not found or no activity'}</p>
+                        </div>
+                      )}
+                      {analysis.fetched_data?.github && (
+                        <div className="bg-slate-800/50 p-3 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">GitHub</p>
+                          <p className="text-white">{analysis.fetched_data.github.found ? `${analysis.fetched_data.github.public_repos} repos, ~${analysis.fetched_data.github.total_commits_estimate} commits` : 'Not found'}</p>
+                        </div>
+                      )}
+                      {analysis.fetched_data?.leetcode && (
+                        <div className="bg-slate-800/50 p-3 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">LeetCode</p>
+                          <p className="text-white">{analysis.fetched_data.leetcode.found ? `${analysis.fetched_data.leetcode.total_solved} solved (${analysis.fetched_data.leetcode.easy}E/${analysis.fetched_data.leetcode.medium}M/${analysis.fetched_data.leetcode.hard}H)` : 'Not found'}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator className="bg-slate-700" />
+
+                  <div>
                     <h3 className="text-white font-semibold mb-3">Calculated Scores</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       <div className="bg-slate-800/50 p-3 rounded-lg">
