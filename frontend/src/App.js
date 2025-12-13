@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "@/App.css";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -23,32 +23,73 @@ function App() {
     leetcode_username: ""
   });
 
+  // Check for existing wallet connection on component mount
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          const accounts = await window.ethereum.request({ method: "eth_accounts" });
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+            setWalletConnected(true);
+          }
+        } catch (error) {
+          console.error("Error checking wallet connection:", error);
+        }
+      }
+    };
+    
+    checkWalletConnection();
+  }, []);
+
   const connectWallet = async () => {
     if (typeof window.ethereum === "undefined") {
-      toast.error("MetaMask not detected");
+      toast.error("MetaMask not detected. Please install MetaMask extension.");
       return;
     }
+    
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      setWalletAddress(accounts[0]);
-      setWalletConnected(true);
-      toast.success("Wallet connected");
+      // Check if already connected
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      if (accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setWalletConnected(true);
+        toast.success("Wallet already connected");
+        return;
+      }
+      
+      // Request connection
+      const newAccounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      if (newAccounts.length > 0) {
+        setWalletAddress(newAccounts[0]);
+        setWalletConnected(true);
+        toast.success("Wallet connected successfully");
+      }
     } catch (error) {
-      toast.error("Failed to connect wallet");
+      console.error("Wallet connection error:", error);
+      if (error.code === 4001) {
+        toast.error("Wallet connection rejected by user");
+      } else if (error.code === -32002) {
+        toast.error("Wallet connection request already pending");
+      } else {
+        toast.error(`Failed to connect wallet: ${error.message || "Unknown error"}`);
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!walletConnected) {
-      toast.error("Please connect wallet first");
+    
+    // Check if at least one input is provided
+    if (!walletConnected && !formData.github_username && !formData.leetcode_username) {
+      toast.error("Please connect wallet or provide GitHub/LeetCode username");
       return;
     }
     
     setLoading(true);
     try {
       const payload = {
-        wallet_address: walletAddress,
+        wallet_address: walletConnected ? walletAddress : null,
         github_username: formData.github_username || null,
         leetcode_username: formData.leetcode_username || null
       };
@@ -57,6 +98,7 @@ function App() {
       setAnalysis(response.data);
       toast.success("Analysis complete");
     } catch (error) {
+      console.error("Analysis error:", error);
       toast.error("Analysis failed: " + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
@@ -88,28 +130,32 @@ function App() {
           <p className="text-slate-400 text-lg">Transparent, explainable reputation analysis powered by AI</p>
         </div>
 
-        {!walletConnected ? (
+        <div className="space-y-6">
+          {/* Wallet Connection Section */}
           <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm" data-testid="wallet-connect-card">
             <CardHeader>
-              <CardTitle className="text-white">Connect Your Wallet</CardTitle>
-              <CardDescription className="text-slate-400">Connect your wallet to begin reputation analysis</CardDescription>
+              <CardTitle className="text-white">
+                {walletConnected ? "Wallet Connected" : "Connect Your Wallet (Optional)"}
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                {walletConnected 
+                  ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                  : "Connect your wallet for on-chain reputation analysis, or proceed with GitHub/LeetCode only"
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={connectWallet} size="lg" className="w-full" data-testid="connect-wallet-btn">
-                Connect MetaMask
-              </Button>
+              {!walletConnected ? (
+                <Button onClick={connectWallet} size="lg" className="w-full" data-testid="connect-wallet-btn">
+                  Connect MetaMask
+                </Button>
+              ) : (
+                <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500">
+                  Connected
+                </Badge>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-6">
-            <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
-                  <span>Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
-                  <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500">Connected</Badge>
-                </CardTitle>
-              </CardHeader>
-            </Card>
 
             <form onSubmit={handleSubmit} data-testid="reputation-form">
               <div className="space-y-6">
@@ -306,8 +352,7 @@ function App() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
