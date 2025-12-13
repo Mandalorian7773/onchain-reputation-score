@@ -226,65 +226,177 @@ function calculateScores(wallet, github, leetcode) {
   };
 }
 
-// Get AI reasoning
-async function getAIReasoning(data) {
-  const systemPrompt = `You are the core Reputation Reasoning Agent for an on-chain reputation system.
-
-Your role is to analyze signal quality, consistency, and confidence across multiple technical reputation signals.
-You do NOT calculate numeric scores, generate UI, or make subjective judgments about people.
-
-This system is transparent, explainable, and assistive.
-
-ANALYSIS APPROACH:
-- Use multi-step internal reasoning to evaluate each signal independently
-- Cross-check signals for consistency (e.g., account ages, activity patterns)
-- Detect anomalies conservatively (very new accounts with extreme activity, mismatched timelines)
-- Derive overall confidence level from signal quality and consistency
-- Perform detailed reasoning internally but return ONLY structured JSON output
-- Be concise, neutral, and token-efficient
-
-You will receive a JSON object with wallet, github, problem_solving signals and calculated scores.
-
-Your tasks:
-1) Evaluate SIGNAL QUALITY for each category (strong/medium/weak/missing)
-2) Analyze PROBLEM-SOLVING SIGNAL as a skill indicator
-3) Detect ANOMALIES conservatively
-4) Assign OVERALL CONFIDENCE LEVEL (high/medium/low)
-5) Produce STRUCTURED, MACHINE-READABLE output
-
-Output ONLY valid JSON in this exact structure:
-{
-  "confidence_level": "high | medium | low",
-  "signal_strength": {
-    "wallet": "strong | medium | weak | missing",
-    "github": "strong | medium | weak | missing",
-    "problem_solving": "strong | medium | weak | missing",
-    "consistency": "strong | medium | weak"
-  },
-  "anomalies_detected": ["short factual description"],
-  "confidence_reasoning": ["short, neutral, factual reason"],
-  "notes": ["optional technical notes"]
+// Deterministic AI-style reasoning analysis
+function performReasoningAnalysis(walletData, githubData, leetcodeData, scores) {
+  const signals = {
+    wallet: evaluateWalletSignal(walletData),
+    github: evaluateGitHubSignal(githubData),
+    problem_solving: evaluateLeetCodeSignal(leetcodeData),
+    consistency: evaluateConsistency(walletData, githubData, leetcodeData)
+  };
+  
+  const anomalies = detectAnomalies(walletData, githubData, leetcodeData);
+  const confidence = deriveConfidence(signals, anomalies);
+  const reasoning = generateReasoning(signals, anomalies, walletData, githubData, leetcodeData);
+  const notes = generateNotes(walletData, githubData, leetcodeData);
+  
+  return {
+    confidence_level: confidence,
+    signal_strength: signals,
+    anomalies_detected: anomalies,
+    confidence_reasoning: reasoning,
+    notes: notes
+  };
 }
 
-Be conservative, cautious, and factual. Do NOT hallucinate missing data.`;
+function evaluateWalletSignal(wallet) {
+  if (!wallet?.found) return 'missing';
+  if (wallet.age_days >= 365 && wallet.tx_count >= 100) return 'strong';
+  if (wallet.age_days >= 180 && wallet.tx_count >= 50) return 'medium';
+  if (wallet.age_days >= 30 || wallet.tx_count >= 10) return 'weak';
+  return 'weak';
+}
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: JSON.stringify(data) }
-      ],
-      temperature: 0.3,
-      response_format: { type: 'json_object' }
-    });
-    
-    return JSON.parse(completion.choices[0].message.content);
-  } catch (error) {
-    console.error('AI reasoning error:', error);
-    fastify.log.error('AI reasoning error:', error);
-    throw error;
+function evaluateGitHubSignal(github) {
+  if (!github?.found) return 'missing';
+  if (github.account_age_days >= 730 && github.public_repos >= 20 && github.total_commits_estimate >= 200) return 'strong';
+  if (github.account_age_days >= 365 && github.public_repos >= 10 && github.total_commits_estimate >= 50) return 'medium';
+  if (github.account_age_days >= 180 || github.public_repos >= 5) return 'weak';
+  return 'weak';
+}
+
+function evaluateLeetCodeSignal(leetcode) {
+  if (!leetcode?.found) return 'missing';
+  if (leetcode.total_solved >= 200 && leetcode.hard >= 20) return 'strong';
+  if (leetcode.total_solved >= 100 && leetcode.hard >= 10) return 'medium';
+  if (leetcode.total_solved >= 30) return 'weak';
+  return 'weak';
+}
+
+function evaluateConsistency(wallet, github, leetcode) {
+  const ages = [];
+  if (wallet?.found) ages.push(wallet.age_days);
+  if (github?.found) ages.push(github.account_age_days);
+  if (leetcode?.found) ages.push(leetcode.account_age_days);
+  
+  if (ages.length < 2) return 'weak';
+  
+  const maxDiff = Math.max(...ages) - Math.min(...ages);
+  if (maxDiff <= 180) return 'strong';
+  if (maxDiff <= 365) return 'medium';
+  return 'weak';
+}
+
+function detectAnomalies(wallet, github, leetcode) {
+  const anomalies = [];
+  
+  // Very new wallet with high activity
+  if (wallet?.found && wallet.age_days < 30 && wallet.tx_count > 500) {
+    anomalies.push('new wallet with unusually high transaction count');
   }
+  
+  // Very new GitHub with many repos
+  if (github?.found && github.account_age_days < 90 && github.public_repos > 50) {
+    anomalies.push('new GitHub account with unusually high repository count');
+  }
+  
+  // Suspicious LeetCode pattern
+  if (leetcode?.found && leetcode.account_age_days < 90 && leetcode.total_solved > 300) {
+    anomalies.push('recent LeetCode account with unusually high solve count');
+  }
+  
+  // Inconsistent account ages
+  const ages = [];
+  if (wallet?.found) ages.push({ name: 'wallet', age: wallet.age_days });
+  if (github?.found) ages.push({ name: 'github', age: github.account_age_days });
+  if (leetcode?.found) ages.push({ name: 'leetcode', age: leetcode.account_age_days });
+  
+  if (ages.length >= 2) {
+    const sorted = ages.sort((a, b) => a.age - b.age);
+    const diff = sorted[sorted.length - 1].age - sorted[0].age;
+    if (diff > 730) {
+      anomalies.push(`significant age mismatch between accounts (${Math.round(diff / 365)} years difference)`);
+    }
+  }
+  
+  return anomalies;
+}
+
+function deriveConfidence(signals, anomalies) {
+  const signalValues = Object.values(signals);
+  const strongCount = signalValues.filter(s => s === 'strong').length;
+  const mediumCount = signalValues.filter(s => s === 'medium').length;
+  const missingCount = signalValues.filter(s => s === 'missing').length;
+  
+  if (anomalies.length > 0) return 'low';
+  if (missingCount >= 3) return 'low';
+  if (strongCount >= 2 && missingCount <= 1) return 'high';
+  if (strongCount >= 1 || (mediumCount >= 2 && missingCount <= 1)) return 'medium';
+  return 'low';
+}
+
+function generateReasoning(signals, anomalies, wallet, github, leetcode) {
+  const reasoning = [];
+  
+  const presentSignals = [];
+  if (wallet?.found) presentSignals.push('wallet');
+  if (github?.found) presentSignals.push('GitHub');
+  if (leetcode?.found) presentSignals.push('LeetCode');
+  
+  if (presentSignals.length === 0) {
+    reasoning.push('No signals available for analysis');
+    return reasoning;
+  }
+  
+  if (presentSignals.length === 3) {
+    reasoning.push('All three signal categories present');
+  } else if (presentSignals.length === 2) {
+    reasoning.push(`Two signal categories present: ${presentSignals.join(' and ')}`);
+  } else {
+    reasoning.push(`Only one signal category present: ${presentSignals[0]}`);
+  }
+  
+  const strongSignals = Object.entries(signals).filter(([k, v]) => v === 'strong').map(([k]) => k);
+  if (strongSignals.length > 0) {
+    reasoning.push(`Strong signals detected in: ${strongSignals.join(', ')}`);
+  }
+  
+  if (anomalies.length > 0) {
+    reasoning.push(`${anomalies.length} anomaly(ies) detected requiring review`);
+  }
+  
+  if (signals.consistency === 'strong') {
+    reasoning.push('Account ages show strong consistency across platforms');
+  } else if (signals.consistency === 'weak') {
+    reasoning.push('Account ages show inconsistency across platforms');
+  }
+  
+  return reasoning;
+}
+
+function generateNotes(wallet, github, leetcode) {
+  const notes = [];
+  
+  if (wallet?.found && wallet.tx_count === 0) {
+    notes.push('Wallet has no transactions on Polygon network');
+  }
+  
+  if (github?.found && github.total_commits_estimate === 0) {
+    notes.push('GitHub activity detected but commit count estimation unavailable');
+  }
+  
+  if (leetcode?.found) {
+    const difficulty_ratio = leetcode.hard / Math.max(leetcode.total_solved, 1);
+    if (difficulty_ratio > 0.3) {
+      notes.push('High proportion of hard problems solved indicates strong algorithmic skills');
+    }
+  }
+  
+  if (!wallet?.found && !github?.found && !leetcode?.found) {
+    notes.push('Insufficient data to perform comprehensive reputation analysis');
+  }
+  
+  return notes;
 }
 
 // Health check
