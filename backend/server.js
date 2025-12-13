@@ -413,6 +413,30 @@ fastify.get('/api', async (request, reply) => {
   return { message: 'Verifiable Reputation System API' };
 });
 
+fastify.get('/api/profile/:profileId', async (request, reply) => {
+  const { profileId } = request.params;
+  
+  try {
+    const platformHistory = await getPlatformHistory(profileId);
+    
+    if (!platformHistory) {
+      return reply.code(404).send({ error: 'Profile not found' });
+    }
+    
+    // Get the inputs from the most recent computation
+    // In production, you'd want to regenerate from stored inputs
+    // For now, return placeholder indicating profile exists
+    return reply.code(501).send({ 
+      error: 'Profile retrieval not yet implemented',
+      note: 'Platform history exists. Full profile regeneration from stored inputs coming soon.',
+      platform_history: platformHistory
+    });
+  } catch (error) {
+    fastify.log.error('Profile fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch profile' });
+  }
+});
+
 fastify.post('/api/profile', async (request, reply) => {
   const { github_username, leetcode_username, wallet_address } = request.body;
   
