@@ -131,7 +131,34 @@ Be conservative, cautious, and factual. Do NOT hallucinate missing data."""
     user_message = UserMessage(text=json.dumps(data))
     response = await chat.send_message(user_message)
     
-    return json.loads(response)
+    # Handle different response types
+    logger.info(f"LLM Response type: {type(response)}")
+    logger.info(f"LLM Response: {response}")
+    
+    # Try to extract JSON from response
+    if isinstance(response, dict):
+        return response
+    elif isinstance(response, str):
+        # Try to parse as JSON
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            # If it's not valid JSON, try to extract JSON from markdown code blocks
+            import re
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1))
+            # Try to find JSON object in the response
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(0))
+            raise ValueError(f"Could not parse JSON from response: {response}")
+    elif hasattr(response, 'text'):
+        return json.loads(response.text)
+    elif hasattr(response, 'content'):
+        return json.loads(response.content)
+    else:
+        raise ValueError(f"Unexpected response type: {type(response)}")
 
 @api_router.post("/analyze", response_model=ReputationResponse)
 async def analyze_reputation(req: ReputationRequest):
