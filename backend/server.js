@@ -168,7 +168,7 @@ async function fetchLeetCodeData(username) {
       found: true
     };
   } catch (error) {
-    fastify.log.error('LeetCode fetch error:', error.message);
+    fastify.log.error('LeetCode fetch error:', error);
     return { username, found: false, error: error.message };
   }
 }
