@@ -19,9 +19,8 @@ function App() {
   const [analysis, setAnalysis] = useState(null);
   
   const [formData, setFormData] = useState({
-    wallet: { address: "", age_days: "", tx_count: "" },
-    github: { username: "", account_age_days: "", public_repos: "", total_commits_estimate: "" },
-    problem_solving: { platform: "", username: "", account_age_days: "", total_solved: "", easy: "", medium: "", hard: "" }
+    github_username: "",
+    leetcode_username: ""
   });
 
   const connectWallet = async () => {
