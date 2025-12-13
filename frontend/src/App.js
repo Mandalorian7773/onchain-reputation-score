@@ -506,20 +506,39 @@ function App() {
 
                 <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white">LeetCode Profile (Optional)</CardTitle>
-                    <CardDescription className="text-slate-400">We'll automatically fetch your problem-solving stats</CardDescription>
+                    <CardTitle className="text-white">Problem-Solving Profile (Optional)</CardTitle>
+                    <CardDescription className="text-slate-400">Choose your platform and we'll fetch your stats</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div>
-                      <Label htmlFor="leetcode-username" className="text-slate-300">LeetCode Username</Label>
-                      <Input 
-                        id="leetcode-username" 
-                        placeholder="username" 
-                        value={formData.leetcode_username} 
-                        onChange={(e) => updateField('leetcode_username', e.target.value)} 
-                        className="bg-slate-800 border-slate-700 text-white" 
-                        data-testid="leetcode-username-input" 
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="platform-select" className="text-slate-300">Platform</Label>
+                        <Select 
+                          value={formData.problem_solving_platform} 
+                          onValueChange={(value) => updateField('problem_solving_platform', value)}
+                        >
+                          <SelectTrigger id="platform-select" className="bg-slate-800 border-slate-700 text-white" data-testid="platform-select">
+                            <SelectValue placeholder="Select platform" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700">
+                            <SelectItem value="leetcode" className="text-white hover:bg-slate-700">LeetCode</SelectItem>
+                            <SelectItem value="codeforces" className="text-white hover:bg-slate-700">Codeforces</SelectItem>
+                            <SelectItem value="codechef" className="text-white hover:bg-slate-700">CodeChef</SelectItem>
+                            <SelectItem value="kaggle" className="text-white hover:bg-slate-700">Kaggle</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="problem-solving-username" className="text-slate-300">Username</Label>
+                        <Input 
+                          id="problem-solving-username" 
+                          placeholder={`Your ${formData.problem_solving_platform} username`}
+                          value={formData.problem_solving_username} 
+                          onChange={(e) => updateField('problem_solving_username', e.target.value)} 
+                          className="bg-slate-800 border-slate-700 text-white" 
+                          data-testid="problem-solving-username-input" 
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
