@@ -63,11 +63,8 @@ function App() {
     }
   };
 
-  const updateField = (section, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value }
-    }));
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const getConfidenceColor = (level) => {
