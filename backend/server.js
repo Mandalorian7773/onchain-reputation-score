@@ -19,8 +19,8 @@ const GITHUB_API = 'https://api.github.com';
 const LEETCODE_GRAPHQL = 'https://leetcode.com/graphql';
 
 const openai = new OpenAI({
-  apiKey: process.env.EMERGENT_LLM_KEY
-  // Let OpenAI client use default baseURL which will work with Emergent key
+  apiKey: process.env.EMERGENT_LLM_KEY,
+  baseURL: 'https://integrations.emergentagent.com/v1'
 });
 
 // Fetch Polygon wallet data
