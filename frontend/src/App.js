@@ -612,10 +612,27 @@ function App() {
                           <p className="text-white">{analysis.fetched_data.github.found ? `${analysis.fetched_data.github.public_repos} repos, ~${analysis.fetched_data.github.total_commits_estimate} commits` : 'Not found'}</p>
                         </div>
                       )}
-                      {analysis.fetched_data?.leetcode && (
+                      {analysis.fetched_data?.problem_solving && (
                         <div className="bg-slate-800/50 p-3 rounded-lg">
-                          <p className="text-slate-400 text-sm mb-1">LeetCode</p>
-                          <p className="text-white">{analysis.fetched_data.leetcode.found ? `${analysis.fetched_data.leetcode.total_solved} solved (${analysis.fetched_data.leetcode.easy}E/${analysis.fetched_data.leetcode.medium}M/${analysis.fetched_data.leetcode.hard}H)` : 'Not found'}</p>
+                          <p className="text-slate-400 text-sm mb-1">{analysis.problem_solving_platform?.charAt(0).toUpperCase() + analysis.problem_solving_platform?.slice(1) || 'Problem Solving'}</p>
+                          <p className="text-white">
+                            {analysis.fetched_data.problem_solving.found ? (
+                              <>
+                                {analysis.fetched_data.problem_solving.platform === 'leetcode' && (
+                                  `${analysis.fetched_data.problem_solving.total_solved} solved (${analysis.fetched_data.problem_solving.easy}E/${analysis.fetched_data.problem_solving.medium}M/${analysis.fetched_data.problem_solving.hard}H)`
+                                )}
+                                {analysis.fetched_data.problem_solving.platform === 'codeforces' && (
+                                  `${analysis.fetched_data.problem_solving.total_solved} solved, Rating: ${analysis.fetched_data.problem_solving.rating} (Max: ${analysis.fetched_data.problem_solving.max_rating})`
+                                )}
+                                {analysis.fetched_data.problem_solving.platform === 'codechef' && (
+                                  `${analysis.fetched_data.problem_solving.total_solved} solved, Rating: ${analysis.fetched_data.problem_solving.rating}`
+                                )}
+                                {analysis.fetched_data.problem_solving.platform === 'kaggle' && (
+                                  `${analysis.fetched_data.problem_solving.competitions} competitions, ${analysis.fetched_data.problem_solving.datasets} datasets, ${analysis.fetched_data.problem_solving.notebooks} notebooks (${analysis.fetched_data.problem_solving.tier})`
+                                )}
+                              </>
+                            ) : 'Not found'}
+                          </p>
                         </div>
                       )}
                     </div>
