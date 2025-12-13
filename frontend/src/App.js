@@ -507,7 +507,7 @@ function App() {
                 <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="text-white">Problem-Solving Profile (Optional)</CardTitle>
-                    <CardDescription className="text-slate-400">Choose your platform and we'll fetch your stats</CardDescription>
+                    <CardDescription className="text-slate-400">Choose your platform and we&apos;ll fetch your stats</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
