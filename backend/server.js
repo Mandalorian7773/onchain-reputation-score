@@ -554,11 +554,12 @@ function evaluateKaggleSignal(kaggleData) {
   return 'weak';
 }
 
-function evaluateConsistency(wallet, github, problemSolvingData) {
+function evaluateConsistency(wallet, github, problemSolvingData, kaggleData) {
   const ages = [];
   if (wallet?.found) ages.push(wallet.age_days);
   if (github?.found) ages.push(github.account_age_days);
   if (problemSolvingData?.found) ages.push(problemSolvingData.account_age_days);
+  if (kaggleData?.found) ages.push(kaggleData.account_age_days);
   
   if (ages.length < 2) return 'weak';
   
