@@ -569,7 +569,7 @@ function evaluateConsistency(wallet, github, problemSolvingData, kaggleData) {
   return 'weak';
 }
 
-function detectAnomalies(wallet, github, problemSolvingData) {
+function detectAnomalies(wallet, github, problemSolvingData, kaggleData) {
   const anomalies = [];
   
   // Very new wallet with high activity
@@ -587,11 +587,17 @@ function detectAnomalies(wallet, github, problemSolvingData) {
     anomalies.push(`recent ${problemSolvingData.platform} account with unusually high solve count`);
   }
   
+  // Suspicious Kaggle pattern
+  if (kaggleData?.found && kaggleData.account_age_days < 90 && kaggleData.competitions > 15) {
+    anomalies.push('recent Kaggle account with unusually high competition count');
+  }
+  
   // Inconsistent account ages
   const ages = [];
   if (wallet?.found) ages.push({ name: 'wallet', age: wallet.age_days });
   if (github?.found) ages.push({ name: 'github', age: github.account_age_days });
   if (problemSolvingData?.found) ages.push({ name: problemSolvingData.platform, age: problemSolvingData.account_age_days });
+  if (kaggleData?.found) ages.push({ name: 'kaggle', age: kaggleData.account_age_days });
   
   if (ages.length >= 2) {
     const sorted = ages.sort((a, b) => a.age - b.age);
