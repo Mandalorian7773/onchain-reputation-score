@@ -466,12 +466,12 @@ function App() {
                   )}
                   {typeof window !== "undefined" && typeof window.ethereum === "undefined" && (
                     <p className="text-xs text-slate-500 text-center">
-                      No wallet detected. You can still analyze GitHub/LeetCode profiles.
+                      No wallet detected. You can still analyze GitHub/problem-solving profiles.
                     </p>
                   )}
                   <div className="text-xs text-slate-500 text-center mt-2">
                     <p>💡 <strong>Tip:</strong> Having wallet connection issues?</p>
-                    <p>You can analyze GitHub/LeetCode profiles without connecting a wallet!</p>
+                    <p>You can analyze GitHub/problem-solving profiles without connecting a wallet!</p>
                   </div>
                 </div>
               ) : (
