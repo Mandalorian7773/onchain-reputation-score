@@ -1,91 +1,145 @@
 {
-  "timestamp": "2025-12-13T07:53:47.338031",
-  "total_tests": 4,
-  "passed_tests": 4,
-  "failed_tests": 0,
-  "success_rate": "100.0%",
+  "timestamp": "2025-12-13T16:04:01.140985",
+  "total_tests": 10,
+  "passed_tests": 7,
+  "failed_tests": 3,
+  "success_rate": "70.0%",
   "test_details": [
     {
       "test": "Root Endpoint",
       "status": "PASSED",
-      "message": "Status: 200, Response: {'message': 'Reputation System API'}",
-      "response_data": {
-        "message": "Reputation System API"
-      }
-    },
-    {
-      "test": "Analyze Minimal Data",
-      "status": "PASSED",
-      "message": "Status: 200, Confidence: medium",
-      "response_data": {
-        "wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-        "calculated_scores": {
-          "wallet_score": 32.0,
-          "github_score": 0.0,
-          "problem_solving_score": 0.0,
-          "consistency_score": 5.0,
-          "final_score": 37.0
-        },
-        "analysis": {
-          "confidence_level": "medium",
-          "signal_strength": {
-            "wallet": "strong",
-            "github": "missing",
-            "problem_solving": "missing",
-            "consistency": "weak"
-          },
-          "anomalies_detected": [],
-          "confidence_reasoning": [
-            "Wallet activity is well-supported by data but lacks supporting signals from GitHub or problem-solving platforms."
-          ],
-          "notes": [
-            "Presence of only wallet-related data may limit overall reputation insights."
-          ]
-        },
-        "timestamp": "2025-12-13T07:53:42.643157+00:00"
-      }
-    },
-    {
-      "test": "Analyze Full Data",
-      "status": "PASSED",
-      "message": "Status: 200, Final Score: 94.5, Confidence: medium",
-      "response_data": {
-        "wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-        "calculated_scores": {
-          "wallet_score": 40.0,
-          "github_score": 32.5,
-          "problem_solving_score": 22.0,
-          "consistency_score": 0,
-          "final_score": 94.5
-        },
-        "analysis": {
-          "confidence_level": "medium",
-          "signal_strength": {
-            "wallet": "strong",
-            "github": "strong",
-            "problem_solving": "strong",
-            "consistency": "medium"
-          },
-          "anomalies_detected": [],
-          "confidence_reasoning": [
-            "The wallet has an established history with a high transaction count over two years, indicating strong activity.",
-            "The GitHub account is mature with a moderate number of public repositories and consistent commit history.",
-            "The problem-solving profile reflects a solid engagement with a large number of problems solved across different difficulty levels.",
-            "There is no inconsistency between the signals; however, the system calculated a zero consistency score which is unusual given other data."
-          ],
-          "notes": [
-            "No extreme or suspicious activity observed.",
-            "The calculated 'consistency_score' appears to be an outlier given that all other signals are strong."
-          ]
-        },
-        "timestamp": "2025-12-13T07:53:47.281114+00:00"
-      }
-    },
-    {
-      "test": "Analyze Invalid Data",
-      "status": "PASSED",
-      "message": "Status: 422 (expected 422 for validation error)",
+      "message": "Status: 200, Response: {'message': 'Verifiable Reputation System API'}",
       "response_data": null
+    },
+    {
+      "test": "Profile No Inputs (Validation)",
+      "status": "PASSED",
+      "message": "Status: 400 (expected 400)",
+      "response_data": null
+    },
+    {
+      "test": "Profile GitHub Only",
+      "status": "PASSED",
+      "message": "Status: 200, GitHub Score: 51, Hash: d3bdf06db6dbd50a...",
+      "response_data": null
+    },
+    {
+      "test": "Profile LeetCode Only",
+      "status": "PASSED",
+      "message": "Status: 200, LeetCode Score: 63.7, Hash: a9686ff32307f8a7...",
+      "response_data": null
+    },
+    {
+      "test": "Profile Wallet Only",
+      "status": "PASSED",
+      "message": "Status: 200, Wallet Score: 0, Hash: 98acdc89b617d2e9...",
+      "response_data": null
+    },
+    {
+      "test": "Profile All Inputs",
+      "status": "PASSED",
+      "message": "Status: 200, Scores: G=51, L=63.7, W=0",
+      "response_data": null
+    },
+    {
+      "test": "Deterministic Behavior",
+      "status": "PASSED",
+      "message": "Scores match: {'github_score': 51, 'leetcode_score': 0, 'wallet_persistence_score': 0}, Compute count: 1, Hash1: 10ab3d651caf7b8d..., Hash2: d12df3aa5b482450...",
+      "response_data": null
+    },
+    {
+      "test": "Verification Endpoint",
+      "status": "FAILED",
+      "message": "Hash verification failed: Profile not found in platform history",
+      "response_data": {
+        "verified": false,
+        "message": "Profile not found in platform history"
+      }
+    },
+    {
+      "test": "Platform History Tracking",
+      "status": "FAILED",
+      "message": "Compute count didn't increase: 1 -> 1",
+      "response_data": {
+        "data1": {
+          "first_seen_at": "2025-12-13T16:03:59.968Z",
+          "compute_count": 1,
+          "platform_age_days": 0
+        },
+        "data2": {
+          "first_seen_at": "2025-12-13T16:04:01.038Z",
+          "compute_count": 1,
+          "platform_age_days": 0
+        }
+      }
+    },
+    {
+      "test": "Role Signal Extraction",
+      "status": "FAILED",
+      "message": "No analyzed repos found",
+      "response_data": {
+        "profile_id": "torvalds",
+        "artifact": {
+          "inputs": {
+            "github_username": "torvalds",
+            "leetcode_username": null,
+            "wallet_address": null
+          },
+          "deterministic_scores": {
+            "github_score": 0,
+            "leetcode_score": 0,
+            "wallet_persistence_score": 0
+          },
+          "role_signals": {
+            "frontend": 0,
+            "backend": 0,
+            "data": 0,
+            "devops": 0
+          },
+          "ai_interpretation": {
+            "confidence": "Low",
+            "role_fit": {
+              "frontend": "Weak",
+              "backend": "Weak",
+              "data": "Weak",
+              "devops": "Weak"
+            },
+            "anomalies": [],
+            "summary": "Profile shows limited technical signals. More public activity needed for comprehensive assessment."
+          },
+          "timestamp": "2025-12-13T16:04:01.109Z"
+        },
+        "artifact_hash": "772f83f7171ccc0c0dc14559a6836a6ef82205b240e766670489be6d05180edd",
+        "platform_history": {
+          "first_seen_at": "2025-12-13T16:04:01.109Z",
+          "compute_count": 1,
+          "platform_age_days": 0
+        },
+        "blockchain_proof": {
+          "anchored": false,
+          "tx_hash": null,
+          "note": "Blockchain anchoring will be enabled after smart contract deployment"
+        },
+        "fetched_data": {
+          "github": {
+            "username": "torvalds",
+            "found": false
+          },
+          "leetcode": null,
+          "wallet": null
+        },
+        "verification": {
+          "reproducible": true,
+          "message": "This profile is reproducible and verifiable from public data.",
+          "verification_steps": [
+            "1. Re-fetch public GitHub/LeetCode/wallet data",
+            "2. Re-run deterministic computation",
+            "3. Re-generate artifact",
+            "4. Re-hash artifact",
+            "5. Compare with on-chain hash (when deployed)"
+          ]
+        }
+      }
     }
   ]
 }
