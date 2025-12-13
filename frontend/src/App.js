@@ -48,33 +48,16 @@ function App() {
     setLoading(true);
     try {
       const payload = {
-        wallet: {
-          address: formData.wallet.address,
-          age_days: parseInt(formData.wallet.age_days) || 0,
-          tx_count: parseInt(formData.wallet.tx_count) || 0
-        },
-        github: {
-          username: formData.github.username || null,
-          account_age_days: formData.github.account_age_days ? parseInt(formData.github.account_age_days) : null,
-          public_repos: formData.github.public_repos ? parseInt(formData.github.public_repos) : null,
-          total_commits_estimate: formData.github.total_commits_estimate ? parseInt(formData.github.total_commits_estimate) : null
-        },
-        problem_solving: {
-          platform: formData.problem_solving.platform || null,
-          username: formData.problem_solving.username || null,
-          account_age_days: formData.problem_solving.account_age_days ? parseInt(formData.problem_solving.account_age_days) : null,
-          total_solved: formData.problem_solving.total_solved ? parseInt(formData.problem_solving.total_solved) : null,
-          easy: formData.problem_solving.easy ? parseInt(formData.problem_solving.easy) : null,
-          medium: formData.problem_solving.medium ? parseInt(formData.problem_solving.medium) : null,
-          hard: formData.problem_solving.hard ? parseInt(formData.problem_solving.hard) : null
-        }
+        wallet_address: walletAddress,
+        github_username: formData.github_username || null,
+        leetcode_username: formData.leetcode_username || null
       };
       
       const response = await axios.post(`${API}/analyze`, payload);
       setAnalysis(response.data);
       toast.success("Analysis complete");
     } catch (error) {
-      toast.error("Analysis failed: " + (error.response?.data?.detail || error.message));
+      toast.error("Analysis failed: " + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
