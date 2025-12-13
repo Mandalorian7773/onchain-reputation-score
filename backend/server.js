@@ -538,13 +538,13 @@ function deriveConfidence(signals, anomalies) {
   return 'low';
 }
 
-function generateReasoning(signals, anomalies, wallet, github, leetcode) {
+function generateReasoning(signals, anomalies, wallet, github, problemSolvingData) {
   const reasoning = [];
   
   const presentSignals = [];
   if (wallet?.found) presentSignals.push('wallet');
   if (github?.found) presentSignals.push('GitHub');
-  if (leetcode?.found) presentSignals.push('LeetCode');
+  if (problemSolvingData?.found) presentSignals.push(problemSolvingData.platform);
   
   if (presentSignals.length === 0) {
     reasoning.push('No signals available for analysis');
