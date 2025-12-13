@@ -418,18 +418,18 @@ function calculateScores(wallet, github, problemSolvingData) {
 }
 
 // Deterministic AI-style reasoning analysis
-function performReasoningAnalysis(walletData, githubData, leetcodeData, scores) {
+function performReasoningAnalysis(walletData, githubData, problemSolvingData, scores) {
   const signals = {
     wallet: evaluateWalletSignal(walletData),
     github: evaluateGitHubSignal(githubData),
-    problem_solving: evaluateLeetCodeSignal(leetcodeData),
-    consistency: evaluateConsistency(walletData, githubData, leetcodeData)
+    problem_solving: evaluateLeetCodeSignal(problemSolvingData),
+    consistency: evaluateConsistency(walletData, githubData, problemSolvingData)
   };
   
-  const anomalies = detectAnomalies(walletData, githubData, leetcodeData);
+  const anomalies = detectAnomalies(walletData, githubData, problemSolvingData);
   const confidence = deriveConfidence(signals, anomalies);
-  const reasoning = generateReasoning(signals, anomalies, walletData, githubData, leetcodeData);
-  const notes = generateNotes(walletData, githubData, leetcodeData);
+  const reasoning = generateReasoning(signals, anomalies, walletData, githubData, problemSolvingData);
+  const notes = generateNotes(walletData, githubData, problemSolvingData);
   
   return {
     confidence_level: confidence,
