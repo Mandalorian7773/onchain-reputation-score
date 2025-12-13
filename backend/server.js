@@ -329,7 +329,7 @@ function hashArtifact(artifact) {
 
 async function getPlatformHistory(profileId) {
   try {
-    const history = await db.platform_history.findOne(
+    const history = await db.collection('platform_history').findOne(
       { profile_id: profileId },
       { projection: { _id: 0 } }
     );
