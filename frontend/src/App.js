@@ -709,9 +709,13 @@ function App() {
                         <p className="text-slate-400 text-sm">Consistency</p>
                         <p className="text-white text-xl font-bold">{analysis.calculated_scores.consistency_score}</p>
                       </div>
-                      <div className="bg-slate-800/50 p-3 rounded-lg">
-                        <p className="text-slate-400 text-sm">Final Score</p>
-                        <p className="text-white text-2xl font-bold">{analysis.calculated_scores.final_score}</p>
+                      <div className="bg-slate-800/50 p-3 rounded-lg col-span-2">
+                        <p className="text-slate-400 text-sm">Final Score (Normalized)</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-white text-2xl font-bold">{analysis.calculated_scores.final_score}</p>
+                          <p className="text-slate-400 text-sm">/100</p>
+                        </div>
+                        <p className="text-slate-500 text-xs mt-1">Based on {analysis.calculated_scores.categories_provided} {analysis.calculated_scores.categories_provided === 1 ? 'category' : 'categories'}</p>
                       </div>
                     </div>
                   </div>
