@@ -63,7 +63,7 @@ async function fetchWalletData(address) {
   }
 }
 
-// Fetch GitHub data
+// Fetch GitHub data with PR contributions
 async function fetchGitHubData(username) {
   if (!username) return null;
   
@@ -76,6 +76,45 @@ async function fetchGitHubData(username) {
     
     const createdAt = new Date(user.created_at);
     const ageDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
+    
+    // Fetch PR data
+    let totalPRs = 0;
+    let mergedPRs = 0;
+    let openPRs = 0;
+    let contributedRepos = new Set();
+    
+    try {
+      // Search for PRs authored by user
+      const prSearchResponse = await axios.get(
+        `${GITHUB_API}/search/issues?q=author:${username}+type:pr&per_page=100`,
+        { headers: { Accept: 'application/vnd.github.v3+json' } }
+      );
+      
+      totalPRs = prSearchResponse.data.total_count;
+      
+      // Count merged and open PRs from the results
+      const prItems = prSearchResponse.data.items || [];
+      prItems.forEach(pr => {
+        if (pr.pull_request) {
+          if (pr.state === 'closed' && pr.pull_request.merged_at) {
+            mergedPRs++;
+          } else if (pr.state === 'open') {
+            openPRs++;
+          }
+          
+          // Extract repo name from URL
+          const repoMatch = pr.repository_url.match(/repos\/([^\/]+\/[^\/]+)$/);
+          if (repoMatch) {
+            const repoName = repoMatch[1];
+            if (!repoName.startsWith(`${username}/`)) {
+              contributedRepos.add(repoName);
+            }
+          }
+        }
+      });
+    } catch (prError) {
+      console.warn('Could not fetch PR data:', prError.message);
+    }
     
     // Estimate total commits from all repos
     let totalCommits = 0;
@@ -100,6 +139,12 @@ async function fetchGitHubData(username) {
       account_age_days: ageDays,
       public_repos: user.public_repos,
       total_commits_estimate: totalCommits,
+      total_prs: totalPRs,
+      merged_prs: mergedPRs,
+      open_prs: openPRs,
+      contributed_repos_count: contributedRepos.size,
+      followers: user.followers,
+      following: user.following,
       found: true
     };
   } catch (error) {
