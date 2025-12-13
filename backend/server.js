@@ -3,7 +3,6 @@ import cors from '@fastify/cors';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
 
 dotenv.config();
 
