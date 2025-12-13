@@ -263,7 +263,7 @@ function App() {
     e.preventDefault();
     
     // Check if at least one input is provided
-    if (!walletConnected && !formData.github_username && !formData.problem_solving_username) {
+    if (!walletConnected && !formData.github_username && !formData.problem_solving_username && !formData.kaggle_username) {
       toast.error("Please connect wallet or provide GitHub/problem-solving username");
       return;
     }
@@ -274,7 +274,8 @@ function App() {
         wallet_address: walletConnected ? walletAddress : null,
         github_username: formData.github_username || null,
         problem_solving_platform: formData.problem_solving_platform || "leetcode",
-        problem_solving_username: formData.problem_solving_username || null
+        problem_solving_username: formData.problem_solving_username || null,
+        kaggle_username: formData.kaggle_username || null
       };
       
       const response = await axios.post(`${API}/analyze`, payload);
