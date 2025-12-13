@@ -707,6 +707,32 @@ fastify.get('/api', async (request, reply) => {
   return { message: 'Reputation System API - Node.js/Fastify' };
 });
 
+// Get reputation history
+fastify.get('/api/history', async (request, reply) => {
+  const { wallet_address, github_username } = request.query;
+  
+  if (!wallet_address && !github_username) {
+    return reply.code(400).send({ error: 'wallet_address or github_username required' });
+  }
+  
+  try {
+    const query = {};
+    if (wallet_address) query.wallet_address = wallet_address;
+    if (github_username) query.github_username = github_username;
+    
+    const history = await db.reputation_history
+      .find(query, { projection: { _id: 0 } })
+      .sort({ timestamp: -1 })
+      .limit(30)
+      .toArray();
+    
+    return { history };
+  } catch (error) {
+    fastify.log.error('History fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch history' });
+  }
+});
+
 // Main analyze endpoint
 fastify.post('/api/analyze', async (request, reply) => {
   const { wallet_address, github_username, problem_solving_platform, problem_solving_username, kaggle_username } = request.body;
