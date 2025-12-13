@@ -400,42 +400,51 @@ async function fetchProblemSolvingData(platform, username) {
 
 // Calculate scores
 function calculateScores(wallet, github, problemSolvingData) {
-  // Wallet score (max 50)
+  // Wallet score (max 40)
   let walletScore = 0;
   if (wallet?.found) {
-    const ageScore = Math.min(wallet.age_days / 365, 1.0) * 30;
-    const txScore = Math.min(wallet.tx_count / 1000, 1.0) * 20;
+    const ageScore = Math.min(wallet.age_days / 365, 1.0) * 25;
+    const txScore = Math.min(wallet.tx_count / 1000, 1.0) * 15;
     walletScore = Math.round((ageScore + txScore) * 10) / 10;
   }
   
-  // GitHub score (max 50)
+  // GitHub score (max 50) - enhanced with PR contributions
   let githubScore = 0;
   if (github?.found) {
-    const ageScore = Math.min(github.account_age_days / 365, 1.0) * 15;
-    const repoScore = Math.min(github.public_repos / 50, 1.0) * 10;
-    const commitScore = Math.min(github.total_commits_estimate / 1000, 1.0) * 25;
-    githubScore = Math.round((ageScore + repoScore + commitScore) * 10) / 10;
+    const ageScore = Math.min(github.account_age_days / 365, 1.0) * 12;
+    const repoScore = Math.min(github.public_repos / 50, 1.0) * 8;
+    const commitScore = Math.min(github.total_commits_estimate / 1000, 1.0) * 15;
+    const prScore = Math.min((github.total_prs || 0) / 100, 1.0) * 10;
+    const contributionScore = Math.min((github.contributed_repos_count || 0) / 20, 1.0) * 5;
+    githubScore = Math.round((ageScore + repoScore + commitScore + prScore + contributionScore) * 10) / 10;
   }
   
-  // Problem-solving score (max 35)
+  // Problem-solving score (max 35 for coding platforms, max 30 for Kaggle)
   let problemSolvingScore = 0;
   if (problemSolvingData?.found) {
-    const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
-    const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
-    
-    // Platform-specific difficulty bonus
-    let difficultyBonus = 0;
-    if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
-      difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
-    } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating >= 1400) {
-      difficultyBonus = Math.min((problemSolvingData.rating - 1400) / 1000, 1.0) * 10;
-    } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating >= 1400) {
-      difficultyBonus = Math.min((problemSolvingData.rating - 1400) / 1000, 1.0) * 10;
-    } else if (problemSolvingData.platform === 'kaggle' && problemSolvingData.competitions > 0) {
-      difficultyBonus = Math.min(problemSolvingData.competitions / 20, 1.0) * 10;
+    if (problemSolvingData.platform === 'kaggle') {
+      // Kaggle scoring (max 30)
+      const competitionScore = Math.min((problemSolvingData.competitions || 0) / 20, 1.0) * 12;
+      const datasetScore = Math.min((problemSolvingData.datasets || 0) / 30, 1.0) * 8;
+      const notebookScore = Math.min((problemSolvingData.notebooks || 0) / 50, 1.0) * 10;
+      problemSolvingScore = Math.round((competitionScore + datasetScore + notebookScore) * 10) / 10;
+    } else {
+      // Coding platform scoring (max 35)
+      const ageScore = Math.min(problemSolvingData.account_age_days / 365, 1.0) * 10;
+      const totalScore = Math.min(problemSolvingData.total_solved / 500, 1.0) * 15;
+      
+      // Platform-specific difficulty bonus
+      let difficultyBonus = 0;
+      if (problemSolvingData.platform === 'leetcode' && problemSolvingData.hard > 0) {
+        difficultyBonus = Math.min(problemSolvingData.hard / 50, 1.0) * 10;
+      } else if (problemSolvingData.platform === 'codeforces' && problemSolvingData.rating) {
+        difficultyBonus = Math.min(problemSolvingData.rating / 3000, 1.0) * 10;
+      } else if (problemSolvingData.platform === 'codechef' && problemSolvingData.rating) {
+        difficultyBonus = Math.min(problemSolvingData.rating / 2500, 1.0) * 10;
+      }
+      
+      problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
     }
-    
-    problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
   }
   
   // Consistency score (max 15)
