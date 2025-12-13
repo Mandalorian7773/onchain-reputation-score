@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-12-13T07:52:22.084891",
+  "total_tests": 4,
+  "passed_tests": 2,
+  "failed_tests": 2,
+  "success_rate": "50.0%",
+  "test_details": [
+    {
+      "test": "Root Endpoint",
+      "status": "PASSED",
+      "message": "Status: 200, Response: {'message': 'Reputation System API'}",
+      "response_data": {
+        "message": "Reputation System API"
+      }
+    },
+    {
+      "test": "Analyze Minimal Data",
+      "status": "FAILED",
+      "message": "Status: 500",
+      "response_data": "Internal Server Error"
+    },
+    {
+      "test": "Analyze Full Data",
+      "status": "FAILED",
+      "message": "Status: 500",
+      "response_data": "Internal Server Error"
+    },
+    {
+      "test": "Analyze Invalid Data",
+      "status": "PASSED",
+      "message": "Status: 422 (expected 422 for validation error)",
+      "response_data": null
+    }
+  ]
+}
