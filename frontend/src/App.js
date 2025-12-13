@@ -67,9 +67,38 @@ function App() {
   };
 
   const copyHash = () => {
-    if (profile?.artifact_hash) {
-      navigator.clipboard.writeText(profile.artifact_hash);
+    if (!profile?.artifact_hash) return;
+    
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(profile.artifact_hash)
+        .then(() => toast.success("Hash copied to clipboard"))
+        .catch(() => {
+          // Fallback to legacy method
+          fallbackCopyHash(profile.artifact_hash);
+        });
+    } else {
+      // Use fallback immediately
+      fallbackCopyHash(profile.artifact_hash);
+    }
+  };
+
+  const fallbackCopyHash = (text) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
       toast.success("Hash copied to clipboard");
+    } catch (err) {
+      toast.error("Copy failed. Hash is displayed above - please select and copy manually");
+    } finally {
+      document.body.removeChild(textArea);
     }
   };
 
