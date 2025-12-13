@@ -423,18 +423,60 @@ fastify.get('/api/profile/:profileId', async (request, reply) => {
   try {
     const platformHistory = await getPlatformHistory(profileId);
     
-    if (!platformHistory) {
+    if (!platformHistory || !platformHistory.latest_inputs) {
       return reply.code(404).send({ error: 'Profile not found' });
     }
     
-    // Get the inputs from the most recent computation
-    // In production, you'd want to regenerate from stored inputs
-    // For now, return placeholder indicating profile exists
-    return reply.code(501).send({ 
-      error: 'Profile retrieval not yet implemented',
-      note: 'Platform history exists. Full profile regeneration from stored inputs coming soon.',
-      platform_history: platformHistory
-    });
+    // Regenerate profile from stored inputs
+    const inputs = platformHistory.latest_inputs;
+    const timestamp = new Date().toISOString();
+    
+    // Fetch fresh data
+    const [githubData, leetcodeData, walletData] = await Promise.all([
+      fetchGitHubProfile(inputs.github_username),
+      fetchLeetCodeProfile(inputs.leetcode_username),
+      fetchWalletData(inputs.wallet_address)
+    ]);
+    
+    const roleSignals = githubData?.role_signals || { frontend: 0, backend: 0, data: 0, devops: 0 };
+    const scores = computeDeterministicScores(githubData, leetcodeData, walletData);
+    const aiInterpretation = await getAIInterpretation(roleSignals);
+    const artifact = createCanonicalArtifact(inputs, scores, roleSignals, aiInterpretation, timestamp);
+    const artifactHash = hashArtifact(artifact);
+    
+    return {
+      profile_id: profileId,
+      artifact,
+      artifact_hash: artifactHash,
+      platform_history: {
+        first_seen_at: platformHistory.first_seen_at,
+        compute_count: platformHistory.compute_count,
+        platform_age_days: platformHistory.first_seen_at 
+          ? Math.floor((Date.now() - new Date(platformHistory.first_seen_at).getTime()) / 86400000)
+          : 0
+      },
+      blockchain_proof: {
+        anchored: false,
+        tx_hash: null,
+        note: 'Blockchain anchoring will be enabled after smart contract deployment'
+      },
+      fetched_data: {
+        github: githubData,
+        leetcode: leetcodeData,
+        wallet: walletData
+      },
+      verification: {
+        reproducible: true,
+        message: 'This profile is reproducible and verifiable from public data.',
+        verification_steps: [
+          '1. Re-fetch public GitHub/LeetCode/wallet data',
+          '2. Re-run deterministic computation',
+          '3. Re-generate artifact',
+          '4. Re-hash artifact',
+          '5. Compare with on-chain hash (when deployed)'
+        ]
+      }
+    };
   } catch (error) {
     fastify.log.error('Profile fetch error:', error);
     return reply.code(500).send({ error: 'Failed to fetch profile' });
