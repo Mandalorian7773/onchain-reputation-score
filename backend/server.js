@@ -280,7 +280,7 @@ Be conservative, cautious, and factual. Do NOT hallucinate missing data.`;
     
     return JSON.parse(completion.choices[0].message.content);
   } catch (error) {
-    fastify.log.error('AI reasoning error:', error.message);
+    fastify.log.error('AI reasoning error:', error);
     throw error;
   }
 }
