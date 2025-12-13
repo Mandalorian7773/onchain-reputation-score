@@ -691,43 +691,57 @@ fastify.get('/api', async (request, reply) => {
 
 // Main analyze endpoint
 fastify.post('/api/analyze', async (request, reply) => {
-  const { wallet_address, github_username, problem_solving_platform, problem_solving_username } = request.body;
+  const { wallet_address, github_username, problem_solving_platform, problem_solving_username, kaggle_username } = request.body;
   
-  if (!wallet_address && !github_username && !problem_solving_username) {
+  if (!wallet_address && !github_username && !problem_solving_username && !kaggle_username) {
     return reply.code(400).send({ error: 'At least one input required' });
   }
   
   try {
-    // Fetch data in parallel
-    const [walletData, githubData, problemSolvingData] = await Promise.all([
+    // Determine if Kaggle should be fetched separately or as problem-solving
+    let kaggleData = null;
+    let problemSolvingData = null;
+    
+    if (kaggle_username) {
+      kaggleData = await fetchKaggleData(kaggle_username);
+    }
+    
+    if (problem_solving_username && problem_solving_platform && problem_solving_platform !== 'kaggle') {
+      problemSolvingData = await fetchProblemSolvingData(problem_solving_platform, problem_solving_username);
+    }
+    
+    // Fetch other data in parallel
+    const [walletData, githubData] = await Promise.all([
       wallet_address ? fetchWalletData(wallet_address) : Promise.resolve(null),
-      github_username ? fetchGitHubData(github_username) : Promise.resolve(null),
-      problem_solving_username ? fetchProblemSolvingData(problem_solving_platform || 'leetcode', problem_solving_username) : Promise.resolve(null)
+      github_username ? fetchGitHubData(github_username) : Promise.resolve(null)
     ]);
     
     // Calculate scores
-    const scores = calculateScores(walletData, githubData, problemSolvingData);
+    const scores = calculateScores(walletData, githubData, problemSolvingData, kaggleData);
     
-    // Prepare data for AI
+    // Prepare data for analysis
     const analysisInput = {
       wallet: walletData || { found: false },
       github: githubData || { found: false },
       problem_solving: problemSolvingData || { found: false },
+      kaggle: kaggleData || { found: false },
       calculated_scores: scores
     };
     
     // Get deterministic reasoning analysis
-    const aiAnalysis = performReasoningAnalysis(walletData, githubData, problemSolvingData, scores);
+    const aiAnalysis = performReasoningAnalysis(walletData, githubData, problemSolvingData, kaggleData, scores);
     
     return {
       wallet_address: wallet_address || null,
       github_username: github_username || null,
-      problem_solving_platform: problem_solving_platform || 'leetcode',
+      problem_solving_platform: problem_solving_platform || null,
       problem_solving_username: problem_solving_username || null,
+      kaggle_username: kaggle_username || null,
       fetched_data: {
         wallet: walletData,
         github: githubData,
-        problem_solving: problemSolvingData
+        problem_solving: problemSolvingData,
+        kaggle: kaggleData
       },
       calculated_scores: scores,
       analysis: aiAnalysis,
