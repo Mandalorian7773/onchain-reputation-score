@@ -608,6 +608,12 @@ function App() {
                         </Badge>
                       </div>
                       <div className="bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-slate-400 text-sm mb-1">Kaggle</p>
+                        <Badge className={`${getSignalColor(analysis.analysis.signal_strength.kaggle)} text-white`}>
+                          {analysis.analysis.signal_strength.kaggle}
+                        </Badge>
+                      </div>
+                      <div className="bg-slate-800/50 p-3 rounded-lg">
                         <p className="text-slate-400 text-sm mb-1">Consistency</p>
                         <Badge className={`${getSignalColor(analysis.analysis.signal_strength.consistency)} text-white`}>
                           {analysis.analysis.signal_strength.consistency}
