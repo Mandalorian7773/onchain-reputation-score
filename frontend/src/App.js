@@ -666,10 +666,17 @@ function App() {
                                 {analysis.fetched_data.problem_solving.platform === 'codechef' && (
                                   `${analysis.fetched_data.problem_solving.total_solved} solved, Rating: ${analysis.fetched_data.problem_solving.rating}`
                                 )}
-                                {analysis.fetched_data.problem_solving.platform === 'kaggle' && (
-                                  `${analysis.fetched_data.problem_solving.competitions} competitions, ${analysis.fetched_data.problem_solving.datasets} datasets, ${analysis.fetched_data.problem_solving.notebooks} notebooks (${analysis.fetched_data.problem_solving.tier})`
-                                )}
                               </>
+                            ) : 'Not found'}
+                          </p>
+                        </div>
+                      )}
+                      {analysis.fetched_data?.kaggle && (
+                        <div className="bg-slate-800/50 p-3 rounded-lg">
+                          <p className="text-slate-400 text-sm mb-1">Kaggle</p>
+                          <p className="text-white">
+                            {analysis.fetched_data.kaggle.found ? (
+                              `${analysis.fetched_data.kaggle.competitions || 0} competitions, ${analysis.fetched_data.kaggle.datasets || 0} datasets, ${analysis.fetched_data.kaggle.notebooks || 0} notebooks (Tier: ${analysis.fetched_data.kaggle.tier || 'Novice'})`
                             ) : 'Not found'}
                           </p>
                         </div>
