@@ -20,7 +20,8 @@ function App() {
   
   const [formData, setFormData] = useState({
     github_username: "",
-    leetcode_username: ""
+    problem_solving_platform: "leetcode",
+    problem_solving_username: ""
   });
 
   // Check for existing wallet connection on component mount
