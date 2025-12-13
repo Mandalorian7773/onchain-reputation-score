@@ -398,127 +398,73 @@ async function fetchProblemSolvingData(platform, username) {
   }
 }
 
-// Calculate scores with dynamic normalization
+// Calculate independent scores (each out of 100)
 function calculateScores(wallet, github, problemSolving, kaggle) {
-  // Individual category max scores
-  const MAX_WALLET = 40;
-  const MAX_GITHUB = 50;
-  const MAX_PROBLEM_SOLVING = 35;
-  const MAX_KAGGLE = 30;
-  const MAX_CONSISTENCY = 15;
-  
-  // Wallet score (max 40)
+  // Wallet score (out of 100)
   let walletScore = 0;
   if (wallet?.found) {
-    const ageScore = Math.min(wallet.age_days / 365, 1.0) * 25;
-    const txScore = Math.min(wallet.tx_count / 1000, 1.0) * 15;
+    const ageScore = Math.min(wallet.age_days / 365, 1.0) * 60;  // 60 points for age
+    const txScore = Math.min(wallet.tx_count / 1000, 1.0) * 40;  // 40 points for transactions
     walletScore = Math.round((ageScore + txScore) * 10) / 10;
   }
   
-  // GitHub score (max 50) - enhanced with PR contributions
+  // GitHub score (out of 100) - enhanced with PR contributions
   let githubScore = 0;
   if (github?.found) {
-    const ageScore = Math.min(github.account_age_days / 365, 1.0) * 12;
-    const repoScore = Math.min(github.public_repos / 50, 1.0) * 8;
-    const commitScore = Math.min(github.total_commits_estimate / 1000, 1.0) * 15;
-    const prScore = Math.min((github.total_prs || 0) / 100, 1.0) * 10;
-    const contributionScore = Math.min((github.contributed_repos_count || 0) / 20, 1.0) * 5;
+    const ageScore = Math.min(github.account_age_days / 365, 1.0) * 20;      // 20 points
+    const repoScore = Math.min(github.public_repos / 50, 1.0) * 15;          // 15 points
+    const commitScore = Math.min(github.total_commits_estimate / 1000, 1.0) * 30;  // 30 points
+    const prScore = Math.min((github.total_prs || 0) / 100, 1.0) * 20;      // 20 points
+    const contributionScore = Math.min((github.contributed_repos_count || 0) / 20, 1.0) * 15;  // 15 points
     githubScore = Math.round((ageScore + repoScore + commitScore + prScore + contributionScore) * 10) / 10;
   }
   
-  // Problem-solving score (max 35 for coding platforms)
+  // Problem-solving score (out of 100)
   let problemSolvingScore = 0;
   if (problemSolving?.found) {
-    // Coding platform scoring (max 35)
-    const ageScore = Math.min(problemSolving.account_age_days / 365, 1.0) * 10;
-    const totalScore = Math.min(problemSolving.total_solved / 500, 1.0) * 15;
+    const ageScore = Math.min(problemSolving.account_age_days / 365, 1.0) * 25;   // 25 points
+    const totalScore = Math.min(problemSolving.total_solved / 500, 1.0) * 45;     // 45 points
     
-    // Platform-specific difficulty bonus
+    // Platform-specific difficulty bonus (30 points)
     let difficultyBonus = 0;
     if (problemSolving.platform === 'leetcode' && problemSolving.hard > 0) {
-      difficultyBonus = Math.min(problemSolving.hard / 50, 1.0) * 10;
+      difficultyBonus = Math.min(problemSolving.hard / 50, 1.0) * 30;
     } else if (problemSolving.platform === 'codeforces' && problemSolving.rating) {
-      difficultyBonus = Math.min(problemSolving.rating / 3000, 1.0) * 10;
+      difficultyBonus = Math.min(problemSolving.rating / 3000, 1.0) * 30;
     } else if (problemSolving.platform === 'codechef' && problemSolving.rating) {
-      difficultyBonus = Math.min(problemSolving.rating / 2500, 1.0) * 10;
+      difficultyBonus = Math.min(problemSolving.rating / 2500, 1.0) * 30;
     }
     
     problemSolvingScore = Math.round((ageScore + totalScore + difficultyBonus) * 10) / 10;
   }
   
-  // Kaggle score (max 30)
+  // Kaggle score (out of 100)
   let kaggleScore = 0;
   if (kaggle?.found) {
-    const competitionScore = Math.min((kaggle.competitions || 0) / 20, 1.0) * 12;
-    const datasetScore = Math.min((kaggle.datasets || 0) / 30, 1.0) * 8;
-    const notebookScore = Math.min((kaggle.notebooks || 0) / 50, 1.0) * 10;
+    const competitionScore = Math.min((kaggle.competitions || 0) / 20, 1.0) * 40;   // 40 points
+    const datasetScore = Math.min((kaggle.datasets || 0) / 30, 1.0) * 30;          // 30 points
+    const notebookScore = Math.min((kaggle.notebooks || 0) / 50, 1.0) * 30;        // 30 points
     kaggleScore = Math.round((competitionScore + datasetScore + notebookScore) * 10) / 10;
   }
   
-  // Consistency score (max 15)
-  const ages = [];
-  if (wallet?.found) ages.push(wallet.age_days);
-  if (github?.found) ages.push(github.account_age_days);
-  if (problemSolving?.found) ages.push(problemSolving.account_age_days);
-  if (kaggle?.found) ages.push(kaggle.account_age_days);
+  // Overall reputation score (average of provided categories)
+  const scores = [];
+  if (wallet?.found) scores.push(walletScore);
+  if (github?.found) scores.push(githubScore);
+  if (problemSolving?.found) scores.push(problemSolvingScore);
+  if (kaggle?.found) scores.push(kaggleScore);
   
-  let consistencyScore = 5.0;
-  if (ages.length >= 2) {
-    const maxDiff = Math.max(...ages) - Math.min(...ages);
-    const consistency = Math.max(0, 1 - (maxDiff / 730));
-    consistencyScore = Math.round(consistency * 15 * 10) / 10;
-  }
-  
-  // Calculate normalized final score based on provided categories only
-  const providedCategories = [];
-  let totalPossibleScore = 0;
-  let totalActualScore = 0;
-  
-  if (wallet?.found) {
-    providedCategories.push('wallet');
-    totalPossibleScore += MAX_WALLET;
-    totalActualScore += walletScore;
-  }
-  
-  if (github?.found) {
-    providedCategories.push('github');
-    totalPossibleScore += MAX_GITHUB;
-    totalActualScore += githubScore;
-  }
-  
-  if (problemSolving?.found) {
-    providedCategories.push('problem_solving');
-    totalPossibleScore += MAX_PROBLEM_SOLVING;
-    totalActualScore += problemSolvingScore;
-  }
-  
-  if (kaggle?.found) {
-    providedCategories.push('kaggle');
-    totalPossibleScore += MAX_KAGGLE;
-    totalActualScore += kaggleScore;
-  }
-  
-  // Add consistency score if multiple categories provided
-  if (providedCategories.length >= 2) {
-    totalPossibleScore += MAX_CONSISTENCY;
-    totalActualScore += consistencyScore;
-  }
-  
-  // Normalize to 100-point scale
-  let finalScore = 0;
-  if (totalPossibleScore > 0) {
-    finalScore = Math.round((totalActualScore / totalPossibleScore) * 100 * 10) / 10;
-  }
+  const overallScore = scores.length > 0 
+    ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+    : 0;
   
   return {
     wallet_score: walletScore,
     github_score: githubScore,
     problem_solving_score: problemSolvingScore,
     kaggle_score: kaggleScore,
-    consistency_score: consistencyScore,
-    final_score: finalScore,
-    max_possible_score: totalPossibleScore,
-    categories_provided: providedCategories.length
+    overall_score: overallScore,
+    categories_provided: scores.length
   };
 }
 
