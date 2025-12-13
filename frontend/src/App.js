@@ -115,86 +115,40 @@ function App() {
               <div className="space-y-6">
                 <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white">Wallet Activity</CardTitle>
+                    <CardTitle className="text-white">GitHub Profile (Optional)</CardTitle>
+                    <CardDescription className="text-slate-400">We'll automatically fetch your public GitHub activity</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent>
                     <div>
-                      <Label htmlFor="wallet-age" className="text-slate-300">Account Age (days)</Label>
-                      <Input id="wallet-age" type="number" value={formData.wallet.age_days} onChange={(e) => updateField('wallet', 'age_days', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="wallet-age-input" />
-                    </div>
-                    <div>
-                      <Label htmlFor="tx-count" className="text-slate-300">Transaction Count</Label>
-                      <Input id="tx-count" type="number" value={formData.wallet.tx_count} onChange={(e) => updateField('wallet', 'tx_count', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="tx-count-input" />
+                      <Label htmlFor="github-username" className="text-slate-300">GitHub Username</Label>
+                      <Input 
+                        id="github-username" 
+                        placeholder="octocat" 
+                        value={formData.github_username} 
+                        onChange={(e) => updateField('github_username', e.target.value)} 
+                        className="bg-slate-800 border-slate-700 text-white" 
+                        data-testid="github-username-input" 
+                      />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle className="text-white">GitHub Activity (Optional)</CardTitle>
+                    <CardTitle className="text-white">LeetCode Profile (Optional)</CardTitle>
+                    <CardDescription className="text-slate-400">We'll automatically fetch your problem-solving stats</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="github-username" className="text-slate-300">Username</Label>
-                        <Input id="github-username" value={formData.github.username} onChange={(e) => updateField('github', 'username', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="github-username-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="github-age" className="text-slate-300">Account Age (days)</Label>
-                        <Input id="github-age" type="number" value={formData.github.account_age_days} onChange={(e) => updateField('github', 'account_age_days', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="github-age-input" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="github-repos" className="text-slate-300">Public Repos</Label>
-                        <Input id="github-repos" type="number" value={formData.github.public_repos} onChange={(e) => updateField('github', 'public_repos', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="github-repos-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="github-commits" className="text-slate-300">Est. Total Commits</Label>
-                        <Input id="github-commits" type="number" value={formData.github.total_commits_estimate} onChange={(e) => updateField('github', 'total_commits_estimate', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="github-commits-input" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="text-white">Problem-Solving Activity (Optional)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="ps-platform" className="text-slate-300">Platform (leetcode/codeforces)</Label>
-                        <Input id="ps-platform" value={formData.problem_solving.platform} onChange={(e) => updateField('problem_solving', 'platform', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-platform-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="ps-username" className="text-slate-300">Username</Label>
-                        <Input id="ps-username" value={formData.problem_solving.username} onChange={(e) => updateField('problem_solving', 'username', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-username-input" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="ps-age" className="text-slate-300">Account Age (days)</Label>
-                        <Input id="ps-age" type="number" value={formData.problem_solving.account_age_days} onChange={(e) => updateField('problem_solving', 'account_age_days', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-age-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="ps-total" className="text-slate-300">Total Solved</Label>
-                        <Input id="ps-total" type="number" value={formData.problem_solving.total_solved} onChange={(e) => updateField('problem_solving', 'total_solved', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-total-input" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="ps-easy" className="text-slate-300">Easy</Label>
-                        <Input id="ps-easy" type="number" value={formData.problem_solving.easy} onChange={(e) => updateField('problem_solving', 'easy', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-easy-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="ps-medium" className="text-slate-300">Medium</Label>
-                        <Input id="ps-medium" type="number" value={formData.problem_solving.medium} onChange={(e) => updateField('problem_solving', 'medium', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-medium-input" />
-                      </div>
-                      <div>
-                        <Label htmlFor="ps-hard" className="text-slate-300">Hard</Label>
-                        <Input id="ps-hard" type="number" value={formData.problem_solving.hard} onChange={(e) => updateField('problem_solving', 'hard', e.target.value)} className="bg-slate-800 border-slate-700 text-white" data-testid="ps-hard-input" />
-                      </div>
+                  <CardContent>
+                    <div>
+                      <Label htmlFor="leetcode-username" className="text-slate-300">LeetCode Username</Label>
+                      <Input 
+                        id="leetcode-username" 
+                        placeholder="username" 
+                        value={formData.leetcode_username} 
+                        onChange={(e) => updateField('leetcode_username', e.target.value)} 
+                        className="bg-slate-800 border-slate-700 text-white" 
+                        data-testid="leetcode-username-input" 
+                      />
                     </div>
                   </CardContent>
                 </Card>
