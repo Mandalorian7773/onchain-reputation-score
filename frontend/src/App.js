@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "@/App.css";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -23,32 +23,252 @@ function App() {
     leetcode_username: ""
   });
 
+  // Check for existing wallet connection on component mount
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      // Wait a bit for browser extensions to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          // Safely check for existing connections
+          const accounts = await window.ethereum.request({ 
+            method: "eth_accounts",
+            params: []
+          });
+          
+          if (accounts && accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+            setWalletConnected(true);
+          }
+        } catch (error) {
+          // Silently handle errors during initial check
+          console.warn("Could not check wallet connection:", error);
+        }
+      }
+    };
+    
+    // Suppress browser-specific wallet extension errors
+    const originalError = console.error;
+    console.error = (...args) => {
+      const message = args[0]?.toString() || '';
+      if (message.includes('evmAsk.js') || 
+          message.includes('solanaActionsContentScript.js') ||
+          message.includes('Unexpected error')) {
+        // Suppress these browser extension errors
+        return;
+      }
+      originalError.apply(console, args);
+    };
+    
+    checkWalletConnection();
+    
+    // Restore original console.error after component unmounts
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
+
+  // Helper function to try alternative connection methods for Comet
+  const tryAlternativeConnection = async () => {
+    console.log("Trying alternative connection methods for Comet...");
+    
+    // Method 1: Try window.comet if it exists
+    if (typeof window.comet !== "undefined") {
+      console.log("Found window.comet, attempting connection...");
+      try {
+        const accounts = await window.comet.request({ method: "eth_requestAccounts" });
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          setWalletConnected(true);
+          toast.success("Connected via Comet wallet");
+          return true;
+        }
+      } catch (error) {
+        console.log("window.comet connection failed:", error);
+      }
+    }
+    
+    // Method 2: Try to trigger wallet manually
+    if (window.ethereum) {
+      try {
+        // Force enable the provider
+        await window.ethereum.enable();
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          setWalletConnected(true);
+          toast.success("Connected via ethereum.enable()");
+          return true;
+        }
+      } catch (error) {
+        console.log("ethereum.enable() failed:", error);
+      }
+    }
+    
+    return false;
+  };
+
   const connectWallet = async () => {
+    // Enhanced browser detection - Comet browser detection
+    const userAgent = navigator.userAgent.toLowerCase();
+    console.log("Full user agent:", navigator.userAgent);
+    
+    // Comet browser might not have "comet" in user agent, so check for other indicators
+    const isComet = userAgent.includes('comet') || 
+                   userAgent.includes('cometbrowser') ||
+                   // Check for Comet-specific window properties
+                   (typeof window !== 'undefined' && (
+                     window.comet || 
+                     window.cometWallet ||
+                     (window.ethereum && window.ethereum.isComet) ||
+                     // Check if it's a Chromium-based browser with built-in wallet but not standard Chrome/Brave
+                     (userAgent.includes('chrome') && 
+                      !userAgent.includes('edg') && 
+                      !userAgent.includes('brave') && 
+                      window.ethereum && 
+                      !window.ethereum.isMetaMask &&
+                      window.ethereum.providers === undefined)
+                   ));
+    
+    const isBrave = userAgent.includes('brave');
+    const isChrome = userAgent.includes('chrome') && !isComet && !isBrave;
+    
+    // Check for Ethereum provider
     if (typeof window.ethereum === "undefined") {
-      toast.error("MetaMask not detected");
+      if (isComet) {
+        toast.error("Comet browser's wallet not detected. Try enabling the built-in wallet or use Chrome with MetaMask.");
+      } else {
+        toast.error("No Ethereum wallet detected. Please install MetaMask or use a Web3-enabled browser.");
+      }
       return;
     }
+    
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      setWalletAddress(accounts[0]);
-      setWalletConnected(true);
-      toast.success("Wallet connected");
+      console.log("Attempting wallet connection...", { isComet, isBrave, isChrome });
+      
+      // For Comet browser, try to detect and handle multiple providers
+      if (isComet && window.ethereum.providers) {
+        console.log("Multiple providers detected in Comet:", window.ethereum.providers.length);
+        // Try to find MetaMask provider if available
+        const metaMaskProvider = window.ethereum.providers.find(p => p.isMetaMask);
+        if (metaMaskProvider) {
+          console.log("Using MetaMask provider in Comet");
+          window.ethereum = metaMaskProvider;
+        }
+      }
+      
+      // Add longer delay for Comet to ensure wallet is ready
+      await new Promise(resolve => setTimeout(resolve, isComet ? 1000 : 100));
+      
+      // Check if already connected
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({ 
+          method: "eth_accounts",
+          params: []
+        });
+        console.log("Existing accounts check:", accounts);
+      } catch (accountsError) {
+        console.warn("Could not check existing accounts:", accountsError);
+        accounts = [];
+      }
+      
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setWalletConnected(true);
+        toast.success("Wallet already connected");
+        return;
+      }
+      
+      // For Comet, add user interaction prompt
+      if (isComet) {
+        toast.info("Click 'Connect Wallet' and look for wallet popup. If no popup appears, try refreshing the page.");
+      }
+      
+      // Request connection with enhanced error handling for Comet
+      console.log("Requesting wallet connection...");
+      
+      const connectionPromise = window.ethereum.request({ 
+        method: "eth_requestAccounts",
+        params: []
+      });
+      
+      // Longer timeout for Comet browser
+      const timeoutDuration = isComet ? 20000 : (isBrave ? 15000 : 10000);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Connection timeout")), timeoutDuration)
+      );
+      
+      const newAccounts = await Promise.race([connectionPromise, timeoutPromise]);
+      console.log("Connection result:", newAccounts);
+      
+      if (newAccounts && newAccounts.length > 0) {
+        setWalletAddress(newAccounts[0]);
+        setWalletConnected(true);
+        toast.success("Wallet connected successfully");
+      } else {
+        toast.error("No accounts returned from wallet");
+      }
     } catch (error) {
-      toast.error("Failed to connect wallet");
+      console.error("Wallet connection error:", error);
+      
+      // Enhanced error handling for Comet browser
+      if (error.code === 4001) {
+        toast.error("Wallet connection rejected by user");
+      } else if (error.code === -32002) {
+        if (isComet) {
+          toast.error("Wallet connection already pending. Check for popup or refresh the page.");
+        } else {
+          toast.error("Wallet connection request already pending");
+        }
+      } else if (error.code === -32603) {
+        toast.error("Internal wallet error. Please try refreshing the page.");
+      } else if (error.message === "Connection timeout") {
+        if (isComet) {
+          toast.error("Comet wallet connection timed out. Try: 1) Refresh page 2) Enable built-in wallet 3) Use Chrome with MetaMask");
+        } else {
+          toast.error("Wallet connection timed out. Please try again.");
+        }
+      } else if (error.message && error.message.includes("User rejected")) {
+        toast.error("Wallet connection rejected by user");
+      } else if (error.message && (error.message.includes("evmAsk") || error.message.includes("provider"))) {
+        toast.error("Browser wallet conflict detected. Try using Chrome with MetaMask extension.");
+      } else if (isComet && (error.message.includes("undefined") || error.message.includes("null"))) {
+        console.log("Comet wallet not responding, trying alternative methods...");
+        const alternativeSuccess = await tryAlternativeConnection();
+        if (!alternativeSuccess) {
+          toast.error("Comet wallet not responding. Try: 1) Refresh page 2) Check wallet settings 3) Use Chrome with MetaMask");
+        }
+      } else {
+        // For unknown errors, try alternative connection for Comet
+        console.warn("Unknown wallet error:", error);
+        if (isComet) {
+          console.log("Trying alternative connection methods for Comet...");
+          const alternativeSuccess = await tryAlternativeConnection();
+          if (!alternativeSuccess) {
+            toast.error("Comet wallet connection failed. Try refreshing or use Chrome with MetaMask. You can still analyze GitHub/LeetCode profiles.");
+          }
+        } else {
+          toast.error("Wallet connection failed. You can still use GitHub/LeetCode analysis without connecting a wallet.");
+        }
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!walletConnected) {
-      toast.error("Please connect wallet first");
+    
+    // Check if at least one input is provided
+    if (!walletConnected && !formData.github_username && !formData.leetcode_username) {
+      toast.error("Please connect wallet or provide GitHub/LeetCode username");
       return;
     }
     
     setLoading(true);
     try {
       const payload = {
-        wallet_address: walletAddress,
+        wallet_address: walletConnected ? walletAddress : null,
         github_username: formData.github_username || null,
         leetcode_username: formData.leetcode_username || null
       };
@@ -57,6 +277,7 @@ function App() {
       setAnalysis(response.data);
       toast.success("Analysis complete");
     } catch (error) {
+      console.error("Analysis error:", error);
       toast.error("Analysis failed: " + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
@@ -88,28 +309,175 @@ function App() {
           <p className="text-slate-400 text-lg">Transparent, explainable reputation analysis powered by AI</p>
         </div>
 
-        {!walletConnected ? (
+        <div className="space-y-6">
+          {/* Wallet Connection Section */}
           <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm" data-testid="wallet-connect-card">
             <CardHeader>
-              <CardTitle className="text-white">Connect Your Wallet</CardTitle>
-              <CardDescription className="text-slate-400">Connect your wallet to begin reputation analysis</CardDescription>
+              <CardTitle className="text-white">
+                {walletConnected ? "Wallet Connected" : "Connect Your Wallet (Optional)"}
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                {walletConnected 
+                  ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                  : "Connect your wallet for on-chain reputation analysis, or proceed with GitHub/LeetCode only"
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={connectWallet} size="lg" className="w-full" data-testid="connect-wallet-btn">
-                Connect MetaMask
-              </Button>
+              {!walletConnected ? (
+                <div className="space-y-3">
+                  <Button onClick={connectWallet} size="lg" className="w-full" data-testid="connect-wallet-btn">
+                    {typeof window !== "undefined" && typeof window.ethereum !== "undefined" 
+                      ? (typeof window !== "undefined" && (
+                          navigator.userAgent.toLowerCase().includes('comet') || 
+                          navigator.userAgent.toLowerCase().includes('cometbrowser') ||
+                          (window.ethereum && window.ethereum.isComet) ||
+                          (window.comet || window.cometWallet)
+                        ) 
+                          ? "Connect Comet Wallet" 
+                          : "Connect Wallet")
+                      : "Install MetaMask"
+                    }
+                  </Button>
+                  {typeof window !== "undefined" && (
+                    navigator.userAgent.toLowerCase().includes('comet') || 
+                    navigator.userAgent.toLowerCase().includes('cometbrowser') ||
+                    (window.ethereum && window.ethereum.isComet) ||
+                    (window.comet || window.cometWallet)
+                  ) && (
+                    <div className="text-xs text-amber-400 text-center mt-2 space-y-2">
+                      <p>⚠️ Comet browser detected. If connection fails:</p>
+                      <p>1. Refresh the page and try again</p>
+                      <p>2. Check if built-in wallet is enabled</p>
+                      <p>3. Try Chrome with MetaMask extension</p>
+                      <div className="flex gap-2 mt-2">
+                        <Button 
+                          onClick={() => {
+                            console.log("=== COMPREHENSIVE WALLET DEBUG INFO ===");
+                            console.log("User agent:", navigator.userAgent);
+                            console.log("User agent (lowercase):", navigator.userAgent.toLowerCase());
+                            console.log("window.ethereum exists:", typeof window.ethereum !== "undefined");
+                            console.log("window.ethereum:", window.ethereum);
+                            console.log("window.ethereum.providers:", window.ethereum?.providers);
+                            console.log("window.ethereum.isMetaMask:", window.ethereum?.isMetaMask);
+                            console.log("window.ethereum.isComet:", window.ethereum?.isComet);
+                            console.log("window.comet exists:", typeof window.comet !== "undefined");
+                            console.log("window.cometWallet exists:", typeof window.cometWallet !== "undefined");
+                            console.log("All window properties containing 'comet':", Object.keys(window).filter(key => key.toLowerCase().includes('comet')));
+                            console.log("All window properties containing 'wallet':", Object.keys(window).filter(key => key.toLowerCase().includes('wallet')));
+                            
+                            // Try to detect browser type
+                            const userAgent = navigator.userAgent.toLowerCase();
+                            const detectedComet = userAgent.includes('comet') || 
+                                                 userAgent.includes('cometbrowser') ||
+                                                 (window.ethereum && window.ethereum.isComet) ||
+                                                 (window.comet || window.cometWallet) ||
+                                                 (userAgent.includes('chrome') && 
+                                                  !userAgent.includes('edg') && 
+                                                  !userAgent.includes('brave') && 
+                                                  window.ethereum && 
+                                                  !window.ethereum.isMetaMask &&
+                                                  window.ethereum.providers === undefined);
+                            
+                            console.log("Detected as Comet:", detectedComet);
+                            console.log("=== END DEBUG INFO ===");
+                            toast.info("Debug info logged to console (F12)");
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs flex-1"
+                        >
+                          Debug Info
+                        </Button>
+                        <Button 
+                          onClick={async () => {
+                            console.log("=== TESTING COMET CONNECTION METHODS ===");
+                            toast.info("Testing connection methods...");
+                            
+                            // Method 1: Standard eth_requestAccounts
+                            try {
+                              console.log("Method 1: Standard eth_requestAccounts");
+                              const accounts1 = await window.ethereum.request({ method: "eth_requestAccounts" });
+                              console.log("Method 1 result:", accounts1);
+                              if (accounts1 && accounts1.length > 0) {
+                                setWalletAddress(accounts1[0]);
+                                setWalletConnected(true);
+                                toast.success("Connected via Method 1 (standard)");
+                                return;
+                              }
+                            } catch (error) {
+                              console.log("Method 1 failed:", error);
+                            }
+                            
+                            // Method 2: ethereum.enable()
+                            try {
+                              console.log("Method 2: ethereum.enable()");
+                              await window.ethereum.enable();
+                              const accounts2 = await window.ethereum.request({ method: "eth_accounts" });
+                              console.log("Method 2 result:", accounts2);
+                              if (accounts2 && accounts2.length > 0) {
+                                setWalletAddress(accounts2[0]);
+                                setWalletConnected(true);
+                                toast.success("Connected via Method 2 (enable)");
+                                return;
+                              }
+                            } catch (error) {
+                              console.log("Method 2 failed:", error);
+                            }
+                            
+                            // Method 3: Direct provider selection
+                            if (window.ethereum.providers) {
+                              try {
+                                console.log("Method 3: Provider selection");
+                                for (let i = 0; i < window.ethereum.providers.length; i++) {
+                                  const provider = window.ethereum.providers[i];
+                                  console.log(`Testing provider ${i}:`, provider);
+                                  try {
+                                    const accounts3 = await provider.request({ method: "eth_requestAccounts" });
+                                    if (accounts3 && accounts3.length > 0) {
+                                      setWalletAddress(accounts3[0]);
+                                      setWalletConnected(true);
+                                      toast.success(`Connected via Method 3 (provider ${i})`);
+                                      return;
+                                    }
+                                  } catch (providerError) {
+                                    console.log(`Provider ${i} failed:`, providerError);
+                                  }
+                                }
+                              } catch (error) {
+                                console.log("Method 3 failed:", error);
+                              }
+                            }
+                            
+                            toast.error("All connection methods failed. Check console for details.");
+                            console.log("=== ALL METHODS FAILED ===");
+                          }}
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs flex-1"
+                        >
+                          Test Connection
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {typeof window !== "undefined" && typeof window.ethereum === "undefined" && (
+                    <p className="text-xs text-slate-500 text-center">
+                      No wallet detected. You can still analyze GitHub/LeetCode profiles.
+                    </p>
+                  )}
+                  <div className="text-xs text-slate-500 text-center mt-2">
+                    <p>💡 <strong>Tip:</strong> Having wallet connection issues?</p>
+                    <p>You can analyze GitHub/LeetCode profiles without connecting a wallet!</p>
+                  </div>
+                </div>
+              ) : (
+                <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500">
+                  Connected
+                </Badge>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-6">
-            <Card className="bg-slate-900/50 border-slate-700 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
-                  <span>Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
-                  <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500">Connected</Badge>
-                </CardTitle>
-              </CardHeader>
-            </Card>
 
             <form onSubmit={handleSubmit} data-testid="reputation-form">
               <div className="space-y-6">
@@ -306,8 +674,7 @@ function App() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
