@@ -50,6 +50,7 @@ function AppRoutes() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:jobId" element={<JobDetail />} />
+        <Route path="/candidate/profile" element={<ProtectedRoute requiredRole="candidate"><CandidateProfile /></ProtectedRoute>} />
         <Route path="/recruiter/jobs/new" element={<ProtectedRoute requiredRole="recruiter"><CreateJob /></ProtectedRoute>} />
         <Route path="/recruiter/jobs" element={<ProtectedRoute requiredRole="recruiter"><RecruiterJobs /></ProtectedRoute>} />
         <Route path="/recruiter/jobs/:jobId/applicants" element={<ProtectedRoute requiredRole="recruiter"><Applicants /></ProtectedRoute>} />
