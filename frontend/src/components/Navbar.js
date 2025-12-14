@@ -47,6 +47,13 @@ export default function Navbar() {
                   <Badge className="bg-indigo-600 text-white">{user.role}</Badge>
                   <span className="text-slate-300 text-sm">{user.email}</span>
                 </div>
+                {user.role === 'candidate' && (
+                  <Link to="/candidate/profile">
+                    <Button variant="outline" className="border-slate-600 text-slate-300">
+                      My Profile
+                    </Button>
+                  </Link>
+                )}
                 {user.role === 'recruiter' && (
                   <Link to="/recruiter/jobs">
                     <Button variant="outline" className="border-slate-600 text-slate-300">
