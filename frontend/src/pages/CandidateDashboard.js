@@ -137,15 +137,79 @@ export default function CandidateDashboard() {
         
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold text-white mb-4" style={{ fontFamily: 'Azeret Mono, monospace' }}>
-            Verifiable Developer Reputation
+            Candidate Dashboard
           </h1>
           <p className="text-slate-300 text-lg mb-6">
-            Generate a verifiable developer reputation from public data.
-          </p>
-          <p className="text-slate-400 text-sm">
-            No trust required. All profiles are cryptographically verifiable.
+            {profileGenerated ? 'Your verifiable profile is ready!' : 'Generate your verifiable reputation profile'}
           </p>
         </div>
+
+        {profileGenerated ? (
+          <div className="space-y-6">
+            <Card className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border-emerald-600/40 backdrop-blur-lg">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-emerald-500/20 p-3 rounded-lg">
+                    <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-emerald-400 font-bold text-xl mb-2">Profile Generated!</h3>
+                    <p className="text-slate-300 text-sm mb-4">Your verifiable reputation profile is ready to use for job applications.</p>
+                    <div className="bg-slate-900/50 p-4 rounded-lg mb-4">
+                      <p className="text-slate-400 text-xs mb-2">Your Profile Link</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-emerald-400 font-mono text-sm flex-1">
+                          {window.location.origin}/profile/{generatedProfileId}
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/profile/${generatedProfileId}`);
+                            toast.success('Link copied!');
+                          }}
+                          className="border-emerald-600 text-emerald-400"
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Link to={`/profile/${generatedProfileId}`} className="flex-1">
+                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
+                          View My Profile
+                        </Button>
+                      </Link>
+                      <Link to="/jobs" className="flex-1">
+                        <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600">
+                          Browse Jobs & Apply
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-lg">
+              <CardHeader>
+                <CardTitle className="text-white">Need to update your profile?</CardTitle>
+                <CardDescription className="text-slate-400">Generate a new profile with updated data</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => setProfileGenerated(false)}
+                  variant="outline"
+                  className="border-slate-600 text-slate-300"
+                >
+                  Regenerate Profile
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
 
         <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-lg">
           <CardHeader>
