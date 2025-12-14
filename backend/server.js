@@ -786,12 +786,13 @@ fastify.get('/api/recruiter/jobs', { preHandler: authenticate }, async (request,
   }
   
   try {
-    const jobs = await db.collection('jobs').find(
-      { recruiter_id: request.user.userId },
-      { projection: { _id: 0 } }
-    ).toArray();
+    const jobs = await db.collection('jobs').find({ recruiter_id: request.user.userId }).toArray();
+    const jobsWithId = jobs.map(job => ({
+      ...job,
+      _id: job._id.toString()
+    }));
     
-    return { jobs };
+    return { jobs: jobsWithId };
   } catch (error) {
     fastify.log.error('Recruiter jobs fetch error:', error);
     return reply.code(500).send({ error: 'Failed to fetch jobs' });
