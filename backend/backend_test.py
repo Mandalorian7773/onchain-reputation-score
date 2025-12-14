@@ -862,6 +862,7 @@ def main():
     
     print("\n📋 SECTION 3: CANDIDATE FLOW")
     tester.test_candidate_update_profile()
+    tester.test_get_my_profile()
     
     print("\n📋 SECTION 4: JOB MANAGEMENT")
     tester.test_create_job()
