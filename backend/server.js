@@ -385,7 +385,16 @@ function createCanonicalArtifact(inputs, scores, roleSignals, aiOutput, timestam
 }
 
 function hashArtifact(artifact) {
-  const canonical = JSON.stringify(artifact, Object.keys(artifact).sort());
+  // Create deterministic hash by excluding timestamp
+  const deterministicArtifact = {
+    inputs: artifact.inputs,
+    deterministic_scores: artifact.deterministic_scores,
+    role_signals: artifact.role_signals,
+    ai_interpretation: artifact.ai_interpretation
+    // timestamp is excluded for deterministic hashing
+  };
+  
+  const canonical = JSON.stringify(deterministicArtifact, Object.keys(deterministicArtifact).sort());
   return crypto.createHash('sha256').update(canonical).digest('hex');
 }
 
