@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-14T04:46:51.406696",
-  "total_tests": 18,
+  "timestamp": "2025-12-14T06:18:51.043224",
+  "total_tests": 19,
   "passed_tests": 18,
-  "failed_tests": 0,
-  "success_rate": "100.0%",
+  "failed_tests": 1,
+  "success_rate": "94.7%",
   "test_details": [
     {
       "test": "Root Endpoint",
@@ -14,25 +14,25 @@
     {
       "test": "Profile Generation",
       "status": "PASSED",
-      "message": "Profile ID: torvalds, GitHub Score: 0",
+      "message": "Profile ID: torvalds, GitHub Score: 51",
       "response_data": null
     },
     {
       "test": "Signup Candidate",
       "status": "PASSED",
-      "message": "Email: candidate_1765687610@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: candidate_1765693129@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
       "test": "Signup Recruiter",
       "status": "PASSED",
-      "message": "Email: recruiter_1765687610@test.com, Role: recruiter, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: recruiter_1765693129@test.com, Role: recruiter, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
       "test": "Login",
       "status": "PASSED",
-      "message": "Email: candidate_1765687610@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: candidate_1765693129@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
@@ -48,9 +48,15 @@
       "response_data": null
     },
     {
+      "test": "Get My Profile",
+      "status": "FAILED",
+      "message": "Status: 404",
+      "response_data": "{\"message\":\"Route GET:/api/candidate/my-profile not found\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
       "test": "Create Job",
       "status": "PASSED",
-      "message": "Job ID: 693e413a890f4fe6a6dbced0, Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
+      "message": "Job ID: 693e56ca086065c7a6071b7c, Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
       "response_data": null
     },
     {
@@ -62,13 +68,13 @@
     {
       "test": "Browse Jobs",
       "status": "PASSED",
-      "message": "Found 1 jobs",
+      "message": "Found 3 jobs",
       "response_data": null
     },
     {
       "test": "Browse Jobs With Filters",
       "status": "PASSED",
-      "message": "Found 1 Frontend/Remote jobs",
+      "message": "Found 3 Frontend/Remote jobs",
       "response_data": null
     },
     {
@@ -98,7 +104,7 @@
     {
       "test": "Get Applicants",
       "status": "PASSED",
-      "message": "Found 1 applicants, Top score: 0/100, Sorted correctly: True",
+      "message": "Found 1 applicants, Top score: 0/100, Sorted correctly: True, AI insights: Needs Review, Confidence: Low",
       "response_data": null
     },
     {
