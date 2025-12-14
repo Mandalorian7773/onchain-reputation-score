@@ -29,7 +29,7 @@ export default function Login() {
       if (response.data.user.role === 'recruiter') {
         navigate('/recruiter/jobs');
       } else {
-        navigate('/jobs');
+        navigate('/candidate/dashboard');
       }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Login failed');
