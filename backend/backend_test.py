@@ -737,19 +737,28 @@ class JobBoardTester:
                     self.log_test("Get Applicants", False, f"Applicants not sorted by score: {scores}", data)
                     return False
                 
-                # Verify applicant has required fields
+                # Verify applicant has required fields including AI hiring insights
                 first_applicant = applicants[0]
-                required_fields = ["profile_id", "candidate_email", "job_specific_score", "deterministic_scores", "role_fit", "ai_summary"]
+                required_fields = ["profile_id", "candidate_email", "job_specific_score", "deterministic_scores", "role_fit", "ai_summary", "ai_hiring_insights"]
                 missing_fields = [f for f in required_fields if f not in first_applicant]
                 
                 if missing_fields:
                     self.log_test("Get Applicants", False, f"Missing fields: {missing_fields}", data)
                     return False
                 
+                # Verify AI hiring insights structure
+                ai_insights = first_applicant.get("ai_hiring_insights", {})
+                required_ai_fields = ["recommendation", "insights", "hiring_confidence"]
+                missing_ai_fields = [f for f in required_ai_fields if f not in ai_insights]
+                
+                if missing_ai_fields:
+                    self.log_test("Get Applicants", False, f"Missing AI insight fields: {missing_ai_fields}", data)
+                    return False
+                
                 self.log_test(
                     "Get Applicants",
                     True,
-                    f"Found {len(applicants)} applicants, Top score: {scores[0]}/100, Sorted correctly: {scores == sorted_scores}"
+                    f"Found {len(applicants)} applicants, Top score: {scores[0]}/100, Sorted correctly: {scores == sorted_scores}, AI insights: {ai_insights.get('recommendation')}, Confidence: {ai_insights.get('hiring_confidence')}"
                 )
                 return True
             else:
