@@ -74,7 +74,7 @@ export default function Jobs() {
                     <SelectValue placeholder="All Locations" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="" className="text-white">All Locations</SelectItem>
+                    <SelectItem value="all" className="text-white">All Locations</SelectItem>
                     <SelectItem value="Remote" className="text-white">Remote</SelectItem>
                     <SelectItem value="New York" className="text-white">New York</SelectItem>
                     <SelectItem value="San Francisco" className="text-white">San Francisco</SelectItem>
