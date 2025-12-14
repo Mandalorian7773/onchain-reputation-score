@@ -20,8 +20,8 @@ export default function Jobs() {
   const fetchJobs = async () => {
     try {
       const params = new URLSearchParams();
-      if (filters.role) params.append('role', filters.role);
-      if (filters.location) params.append('location', filters.location);
+      if (filters.role && filters.role !== 'all') params.append('role', filters.role);
+      if (filters.location && filters.location !== 'all') params.append('location', filters.location);
       
       const response = await axios.get(`${API}/jobs?${params}`);
       setJobs(response.data.jobs);
