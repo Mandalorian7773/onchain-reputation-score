@@ -676,6 +676,28 @@ async function authenticate(request, reply) {
     const decoded = jwt.verify(token, JWT_SECRET);
     request.user = decoded;
   } catch (error) {
+
+
+// Get candidate's own profile
+fastify.get('/api/candidate/my-profile', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'candidate') {
+    return reply.code(403).send({ error: 'Candidates only' });
+  }
+  
+  try {
+    const profile = await db.collection('candidate_profiles').findOne({ user_id: request.user.userId });
+    
+    if (!profile) {
+      return reply.code(404).send({ error: 'Profile not found', message: 'Please generate your profile first' });
+    }
+    
+    return { profile_id: profile.profile_id, contact_email: profile.contact_email };
+  } catch (error) {
+    fastify.log.error('My profile fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch profile' });
+  }
+});
+
     return reply.code(401).send({ error: 'Invalid token' });
   }
 }
