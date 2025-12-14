@@ -123,7 +123,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6" data-testid="generate-form">
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="github" className="text-slate-300">GitHub Username</Label>
                   <Input 
@@ -146,18 +146,59 @@ export default function Home() {
                     data-testid="leetcode-input"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="wallet" className="text-slate-300">Wallet (Optional)</Label>
-                  <Input 
-                    id="wallet"
-                    placeholder="0x..."
-                    value={formData.wallet_address}
-                    onChange={(e) => setFormData(prev => ({ ...prev, wallet_address: e.target.value }))}
-                    className="bg-slate-800/70 border-slate-600 text-white focus:border-indigo-500"
-                    data-testid="wallet-input"
-                  />
-                </div>
               </div>
+
+              <div className="border-t border-slate-700 pt-6">
+                <Label className="text-slate-300 mb-3 block">Wallet Connection (Optional)</Label>
+                <p className="text-slate-400 text-xs mb-4">Read-only connection for persistence signal. No signing required.</p>
+                
+                {!walletConnected ? (
+                  <div className="space-y-3">
+                    <Select value={walletProvider} onValueChange={setWalletProvider}>
+                      <SelectTrigger className="bg-slate-800/70 border-slate-600 text-white" data-testid="wallet-provider-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="metamask" className="text-white hover:bg-slate-700">MetaMask</SelectItem>
+                        <SelectItem value="walletconnect" className="text-white hover:bg-slate-700">WalletConnect</SelectItem>
+                        <SelectItem value="phantom" className="text-white hover:bg-slate-700">Phantom</SelectItem>
+                        <SelectItem value="backpack" className="text-white hover:bg-slate-700">Backpack</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      type="button"
+                      onClick={connectWallet}
+                      variant="outline"
+                      className="w-full border-slate-600 text-slate-300 hover:bg-slate-800"
+                      data-testid="connect-wallet-btn"
+                    >
+                      Connect Wallet
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="bg-slate-800/50 p-4 rounded-lg border border-emerald-600/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-slate-400 text-xs mb-1">Connected Wallet</p>
+                        <code className="text-emerald-400 font-mono text-sm">
+                          {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                        </code>
+                      </div>
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={disconnectWallet}
+                        className="text-slate-400 hover:text-white"
+                        data-testid="disconnect-wallet-btn"
+                      >
+                        Disconnect
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button 
                 type="submit" 
                 size="lg" 
