@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,12 +11,29 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function Jobs() {
+  const navigate = useNavigate();
+  const { user, getToken } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [filters, setFilters] = useState({ role: 'all', location: 'all' });
+  const [hasProfile, setHasProfile] = useState(true);
 
   useEffect(() => {
+    if (user?.role === 'candidate') {
+      checkProfile();
+    }
     fetchJobs();
   }, [filters]);
+
+  const checkProfile = async () => {
+    try {
+      await axios.get(`${API}/candidate/my-profile`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      setHasProfile(true);
+    } catch (error) {
+      setHasProfile(false);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
