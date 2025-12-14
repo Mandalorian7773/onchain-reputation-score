@@ -48,11 +48,18 @@ export default function Navbar() {
                   <span className="text-slate-300 text-sm">{user.email}</span>
                 </div>
                 {user.role === 'candidate' && (
-                  <Link to="/candidate/profile">
-                    <Button variant="outline" className="border-slate-600 text-slate-300">
-                      My Profile
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/candidate/dashboard">
+                      <Button variant="outline" className="border-slate-600 text-slate-300">
+                        Generate Profile
+                      </Button>
+                    </Link>
+                    <Link to="/candidate/profile">
+                      <Button variant="outline" className="border-slate-600 text-slate-300">
+                        My Profile
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 {user.role === 'recruiter' && (
                   <Link to="/recruiter/jobs">
