@@ -21,9 +21,11 @@ export default function Navbar() {
           </Link>
           
           <div className="flex items-center gap-6">
-            <Link to="/jobs" className="text-slate-300 hover:text-white transition-colors">
-              Browse Jobs
-            </Link>
+            {user && (
+              <Link to="/jobs" className="text-slate-300 hover:text-white transition-colors">
+                Browse Jobs
+              </Link>
+            )}
             <Link to="/about" className="text-slate-300 hover:text-white transition-colors">
               How It Works
             </Link>
