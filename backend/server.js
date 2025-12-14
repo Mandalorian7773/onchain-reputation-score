@@ -3,8 +3,10 @@ import cors from '@fastify/cors';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
