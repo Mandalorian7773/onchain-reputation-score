@@ -674,7 +674,9 @@ async function authenticate(request, reply) {
     const decoded = jwt.verify(token, JWT_SECRET);
     request.user = decoded;
   } catch (error) {
-
+    return reply.code(401).send({ error: 'Invalid token' });
+  }
+}
 
 // Get candidate's own profile
 fastify.get('/api/candidate/my-profile', { preHandler: authenticate }, async (request, reply) => {
@@ -695,10 +697,6 @@ fastify.get('/api/candidate/my-profile', { preHandler: authenticate }, async (re
     return reply.code(500).send({ error: 'Failed to fetch profile' });
   }
 });
-
-    return reply.code(401).send({ error: 'Invalid token' });
-  }
-}
 
 // Signup
 fastify.post('/api/auth/signup', async (request, reply) => {
