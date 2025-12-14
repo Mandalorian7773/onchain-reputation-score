@@ -17,6 +17,8 @@ export default function CandidateDashboard() {
   const navigate = useNavigate();
   const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [profileGenerated, setProfileGenerated] = useState(false);
+  const [generatedProfileId, setGeneratedProfileId] = useState('');
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
   const [walletProvider, setWalletProvider] = useState('metamask');
@@ -24,6 +26,24 @@ export default function CandidateDashboard() {
     github_username: '',
     leetcode_username: ''
   });
+
+  useEffect(() => {
+    checkExistingProfile();
+  }, []);
+
+  const checkExistingProfile = async () => {
+    try {
+      const response = await axios.get(`${API}/candidate/my-profile`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      if (response.data.profile_id) {
+        setGeneratedProfileId(response.data.profile_id);
+        setProfileGenerated(true);
+      }
+    } catch (error) {
+      // No profile yet
+    }
+  };
 
   const connectWallet = async () => {
     try {
