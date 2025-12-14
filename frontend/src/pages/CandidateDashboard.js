@@ -15,7 +15,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
