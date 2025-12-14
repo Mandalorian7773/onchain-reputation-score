@@ -278,6 +278,71 @@ function computeDeterministicScores(githubData, leetcodeData, walletData) {
 async function getAIInterpretation(signals) {
   // Deterministic fallback if AI unavailable
   const roleFit = {
+
+
+// AI hiring insights for recruiters
+async function generateHiringInsights(applicant, job) {
+  const scores = applicant.deterministic_scores;
+  const roleFit = applicant.role_fit;
+  
+  // Deterministic insights based on data
+  const insights = [];
+  
+  // Score-based insights
+  if (applicant.job_specific_score >= 80) {
+    insights.push('Excellent match for this role based on weighted scoring');
+  } else if (applicant.job_specific_score >= 60) {
+    insights.push('Good fit with solid technical foundation');
+  } else if (applicant.job_specific_score < 40) {
+    insights.push('May need additional evaluation beyond automated scoring');
+  }
+  
+  // Role-specific insights
+  const jobRole = job.role.toLowerCase();
+  if (jobRole.includes('frontend') && roleFit.frontend === 'Strong') {
+    insights.push('Strong frontend signals detected from repository analysis');
+  }
+  if (jobRole.includes('backend') && roleFit.backend === 'Strong') {
+    insights.push('Strong backend development experience evident');
+  }
+  if (jobRole.includes('data') && roleFit.data === 'Strong') {
+    insights.push('Data science and ML experience confirmed');
+  }
+  
+  // GitHub activity insights
+  if (scores.github_score >= 70) {
+    insights.push('Consistent GitHub activity and substantial codebase');
+  } else if (scores.github_score < 30) {
+    insights.push('Limited GitHub activity - consider portfolio review');
+  }
+  
+  // LeetCode insights
+  if (scores.leetcode_score >= 70) {
+    insights.push('Strong algorithmic problem-solving demonstrated');
+  }
+  
+  // Wallet persistence
+  if (scores.wallet_persistence_score >= 60) {
+    insights.push('Long-term on-chain presence indicates commitment');
+  }
+  
+  // Overall recommendation
+  let recommendation = 'Review';
+  if (applicant.job_specific_score >= 75) {
+    recommendation = 'Strong Recommend';
+  } else if (applicant.job_specific_score >= 55) {
+    recommendation = 'Recommend';
+  } else if (applicant.job_specific_score < 40) {
+    recommendation = 'Needs Review';
+  }
+  
+  return {
+    recommendation,
+    insights: insights.slice(0, 4), // Top 4 insights
+    hiring_confidence: applicant.job_specific_score >= 70 ? 'High' : applicant.job_specific_score >= 50 ? 'Medium' : 'Low'
+  };
+}
+
     frontend: signals.frontend >= 3 ? 'Strong' : signals.frontend >= 1 ? 'Medium' : 'Weak',
     backend: signals.backend >= 3 ? 'Strong' : signals.backend >= 1 ? 'Medium' : 'Weak',
     data: signals.data >= 3 ? 'Strong' : signals.data >= 1 ? 'Medium' : 'Weak',
