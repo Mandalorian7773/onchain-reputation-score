@@ -12,11 +12,17 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function CandidateProfile() {
-  const { user, getToken } = useAuth();
+  const { user, getToken, logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profileId, setProfileId] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [saved, setSaved] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
