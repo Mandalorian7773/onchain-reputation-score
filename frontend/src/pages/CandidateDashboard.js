@@ -308,13 +308,13 @@ export default function CandidateDashboard() {
             </form>
           </CardContent>
         </Card>
+        )}
 
         <div className="mt-8 text-center">
           <a href="/about" className="text-indigo-400 hover:text-indigo-300 text-sm">
             How does this work?
           </a>
         </div>
-        )}
       </div>
     </div>
   );
