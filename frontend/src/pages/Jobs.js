@@ -11,7 +11,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
-  const [filters, setFilters] = useState({ role: '', location: '' });
+  const [filters, setFilters] = useState({ role: 'all', location: 'all' });
 
   useEffect(() => {
     fetchJobs();
