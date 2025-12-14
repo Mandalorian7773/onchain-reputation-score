@@ -122,7 +122,8 @@ export default function CandidateDashboard() {
       }
       
       toast.success('Profile generated successfully!');
-      navigate(`/profile/${profileId}`);
+      setGeneratedProfileId(profileId);
+      setProfileGenerated(true);
     } catch (error) {
       toast.error('Failed: ' + (error.response?.data?.error || error.message));
     } finally {
