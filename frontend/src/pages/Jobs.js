@@ -59,7 +59,7 @@ export default function Jobs() {
                     <SelectValue placeholder="All Roles" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="" className="text-white">All Roles</SelectItem>
+                    <SelectItem value="all" className="text-white">All Roles</SelectItem>
                     <SelectItem value="Frontend" className="text-white">Frontend</SelectItem>
                     <SelectItem value="Backend" className="text-white">Backend</SelectItem>
                     <SelectItem value="Fullstack" className="text-white">Fullstack</SelectItem>
