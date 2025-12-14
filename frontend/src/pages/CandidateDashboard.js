@@ -314,6 +314,7 @@ export default function CandidateDashboard() {
             How does this work?
           </a>
         </div>
+        )}
       </div>
     </div>
   );
