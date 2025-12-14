@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
+import Landing from './pages/Landing';
+import CandidateDashboard from './pages/CandidateDashboard';
 import Profile from './pages/Profile';
 import Verify from './pages/Verify';
 import About from './pages/About';
