@@ -71,7 +71,7 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.github_username && !formData.leetcode_username && !formData.wallet_address) {
+    if (!formData.github_username && !formData.leetcode_username && !walletAddress) {
       toast.error('Please provide at least one input');
       return;
     }
@@ -81,7 +81,7 @@ export default function Home() {
       const payload = {
         github_username: formData.github_username || null,
         leetcode_username: formData.leetcode_username || null,
-        wallet_address: formData.wallet_address || null
+        wallet_address: walletAddress || null
       };
       
       const response = await axios.post(`${API}/profile`, payload);
