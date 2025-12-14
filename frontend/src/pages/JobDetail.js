@@ -122,27 +122,16 @@ export default function JobDetail() {
 
             {user?.role === 'candidate' && (
               <div className="border-t border-slate-700 pt-6">
-                <h3 className="text-white font-semibold mb-3">Apply to this Job</h3>
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="profileId" className="text-slate-300">Your Profile ID</Label>
-                    <Input
-                      id="profileId"
-                      placeholder="e.g., your_github_username"
-                      value={profileId}
-                      onChange={(e) => setProfileId(e.target.value)}
-                      className="bg-slate-800/70 border-slate-600 text-white"
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleApply}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600"
-                    disabled={applying}
-                  >
-                    {applying ? 'Applying...' : 'Apply'}
-                  </Button>
-                  <p className="text-slate-400 text-xs">Your verifiable reputation will compute a job-specific score.</p>
-                </div>
+                <Button 
+                  onClick={handleApply}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-lg py-6"
+                  disabled={applying}
+                >
+                  {applying ? 'Applying...' : 'Apply to this Job'}
+                </Button>
+                <p className="text-slate-400 text-xs mt-3 text-center">
+                  Your verifiable reputation will be used to compute a job-specific score.
+                </p>
               </div>
             )}
 
