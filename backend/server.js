@@ -748,9 +748,13 @@ fastify.get('/api/jobs', async (request, reply) => {
     if (role) filter.role = role;
     if (location) filter.location = location;
     
-    const jobs = await db.collection('jobs').find(filter, { projection: { _id: 0 } }).toArray();
+    const jobs = await db.collection('jobs').find(filter).toArray();
+    const jobsWithId = jobs.map(job => ({
+      ...job,
+      _id: job._id.toString()
+    }));
     
-    return { jobs };
+    return { jobs: jobsWithId };
   } catch (error) {
     fastify.log.error('Jobs fetch error:', error);
     return reply.code(500).send({ error: 'Failed to fetch jobs' });
