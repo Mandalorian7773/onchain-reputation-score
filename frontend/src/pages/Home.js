@@ -13,11 +13,60 @@ const API = `${BACKEND_URL}/api`;
 export default function Home() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [walletProvider, setWalletProvider] = useState('metamask');
   const [formData, setFormData] = useState({
     github_username: '',
-    leetcode_username: '',
-    wallet_address: ''
+    leetcode_username: ''
   });
+
+  const connectWallet = async () => {
+    try {
+      let address = null;
+
+      if (walletProvider === 'metamask') {
+        if (typeof window.ethereum === 'undefined') {
+          toast.error('MetaMask not detected. Please install MetaMask or select another provider.');
+          return;
+        }
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        address = accounts[0];
+      } else if (walletProvider === 'phantom') {
+        if (typeof window.phantom?.ethereum === 'undefined') {
+          toast.error('Phantom wallet not detected.');
+          return;
+        }
+        const accounts = await window.phantom.ethereum.request({ method: 'eth_requestAccounts' });
+        address = accounts[0];
+      } else if (walletProvider === 'backpack') {
+        if (typeof window.backpack === 'undefined') {
+          toast.error('Backpack wallet not detected.');
+          return;
+        }
+        const accounts = await window.backpack.request({ method: 'eth_requestAccounts' });
+        address = accounts[0];
+      } else if (walletProvider === 'walletconnect') {
+        toast.error('WalletConnect integration coming soon. Please use MetaMask for now.');
+        return;
+      }
+
+      if (address) {
+        setWalletAddress(address);
+        setWalletConnected(true);
+        toast.success(`Wallet connected: ${address.slice(0, 6)}...${address.slice(-4)}`);
+      }
+    } catch (error) {
+      toast.error('Wallet connection failed. You can proceed without wallet.');
+      console.warn('Wallet connection error:', error);
+    }
+  };
+
+  const disconnectWallet = () => {
+    setWalletAddress('');
+    setWalletConnected(false);
+    toast.success('Wallet disconnected');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
