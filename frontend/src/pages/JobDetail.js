@@ -18,7 +18,6 @@ export default function JobDetail() {
   const { user, getToken } = useAuth();
   const [job, setJob] = useState(null);
   const [applying, setApplying] = useState(false);
-  const [profileId, setProfileId] = useState('');
 
   useEffect(() => {
     fetchJob();
