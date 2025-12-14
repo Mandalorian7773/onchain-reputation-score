@@ -278,10 +278,32 @@ function computeDeterministicScores(githubData, leetcodeData, walletData) {
 async function getAIInterpretation(signals) {
   // Deterministic fallback if AI unavailable
   const roleFit = {
-
+    frontend: signals.frontend >= 3 ? 'Strong' : signals.frontend >= 1 ? 'Medium' : 'Weak',
+    backend: signals.backend >= 3 ? 'Strong' : signals.backend >= 1 ? 'Medium' : 'Weak',
+    data: signals.data >= 3 ? 'Strong' : signals.data >= 1 ? 'Medium' : 'Weak',
+    devops: signals.devops >= 2 ? 'Strong' : signals.devops >= 1 ? 'Medium' : 'Weak'
+  };
+  
+  const strongRoles = Object.entries(roleFit).filter(([k, v]) => v === 'Strong').map(([k]) => k);
+  const confidence = strongRoles.length >= 2 ? 'High' : strongRoles.length === 1 ? 'Medium' : 'Low';
+  
+  let summary = 'Profile shows ';
+  if (strongRoles.length > 0) {
+    summary += `strong signals in ${strongRoles.join(' and ')} development.`;
+  } else {
+    summary += 'limited technical signals. More public activity needed for comprehensive assessment.';
+  }
+  
+  return {
+    confidence,
+    role_fit: roleFit,
+    anomalies: [],
+    summary
+  };
+}
 
 // AI hiring insights for recruiters
-async function generateHiringInsights(applicant, job) {
+function generateHiringInsights(applicant, job) {
   const scores = applicant.deterministic_scores;
   const roleFit = applicant.role_fit;
   
