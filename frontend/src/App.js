@@ -10,7 +10,6 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
-import CandidateProfile from './pages/CandidateProfile';
 import CreateJob from './pages/CreateJob';
 import RecruiterJobs from './pages/RecruiterJobs';
 import Applicants from './pages/Applicants';
