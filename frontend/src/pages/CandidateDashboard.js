@@ -88,10 +88,20 @@ export default function CandidateDashboard() {
         wallet_address: walletAddress || null
       };
       
+      // Generate profile
       const response = await axios.post(`${API}/profile`, payload);
       const profileId = response.data.profile_id;
       
-      toast.success('Profile generated');
+      // Auto-save candidate profile with email from user account
+      if (user) {
+        await axios.post(
+          `${API}/candidate/profile`,
+          { profile_id: profileId, contact_email: user.email },
+          { headers: { Authorization: `Bearer ${getToken()}` } }
+        );
+      }
+      
+      toast.success('Profile generated successfully!');
       navigate(`/profile/${profileId}`);
     } catch (error) {
       toast.error('Failed: ' + (error.response?.data?.error || error.message));
