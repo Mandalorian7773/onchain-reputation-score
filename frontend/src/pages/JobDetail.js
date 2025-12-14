@@ -59,7 +59,8 @@ export default function JobDetail() {
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
       
-      toast.success(`Applied! Job-specific score: ${response.data.job_specific_score}/100`);
+      toast.success(`Applied successfully! Your job-specific score: ${response.data.job_specific_score}/100`);
+      toast.success(`Recruiters will see your profile at: /profile/${candidateProfile.data.profile_id}`, { duration: 5000 });
       navigate('/jobs');
     } catch (error) {
       if (error.response?.status === 404) {
