@@ -135,6 +135,10 @@ export default function CandidateDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         
+        <div className="mb-6">
+          <Link to="/jobs" className="text-indigo-400 hover:text-indigo-300">← Back to Jobs</Link>
+        </div>
+        
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold text-white mb-4" style={{ fontFamily: 'Azeret Mono, monospace' }}>
             Candidate Dashboard
