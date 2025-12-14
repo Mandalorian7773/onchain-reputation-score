@@ -766,13 +766,13 @@ fastify.get('/api/jobs/:jobId', async (request, reply) => {
   const { jobId } = request.params;
   
   try {
-    const job = await db.collection('jobs').findOne({ _id: new ObjectId(jobId) }, { projection: { _id: 0 } });
+    const job = await db.collection('jobs').findOne({ _id: new ObjectId(jobId) });
     
     if (!job) {
       return reply.code(404).send({ error: 'Job not found' });
     }
     
-    return { job };
+    return { job: { ...job, _id: job._id.toString() } };
   } catch (error) {
     fastify.log.error('Job fetch error:', error);
     return reply.code(500).send({ error: 'Failed to fetch job' });
