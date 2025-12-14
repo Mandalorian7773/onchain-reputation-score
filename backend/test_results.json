@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-13T16:06:24.003484",
-  "total_tests": 10,
-  "passed_tests": 9,
-  "failed_tests": 1,
-  "success_rate": "90.0%",
+  "timestamp": "2025-12-14T04:46:51.406696",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "failed_tests": 0,
+  "success_rate": "100.0%",
   "test_details": [
     {
       "test": "Root Endpoint",
@@ -12,120 +12,106 @@
       "response_data": null
     },
     {
-      "test": "Profile No Inputs (Validation)",
+      "test": "Profile Generation",
       "status": "PASSED",
-      "message": "Status: 400 (expected 400)",
+      "message": "Profile ID: torvalds, GitHub Score: 0",
       "response_data": null
     },
     {
-      "test": "Profile GitHub Only",
+      "test": "Signup Candidate",
       "status": "PASSED",
-      "message": "Status: 200, GitHub Score: 51, Hash: 87c34bf57479799a...",
+      "message": "Email: candidate_1765687610@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
-      "test": "Profile LeetCode Only",
+      "test": "Signup Recruiter",
       "status": "PASSED",
-      "message": "Status: 200, LeetCode Score: 63.7, Hash: e22aec1f4b3ea1a7...",
+      "message": "Email: recruiter_1765687610@test.com, Role: recruiter, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
-      "test": "Profile Wallet Only",
+      "test": "Login",
       "status": "PASSED",
-      "message": "Status: 200, Wallet Score: 0, Hash: fb04f5486163109f...",
+      "message": "Email: candidate_1765687610@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
-      "test": "Profile All Inputs",
+      "test": "Login Invalid Credentials",
       "status": "PASSED",
-      "message": "Status: 200, Scores: G=51, L=63.7, W=0",
+      "message": "Status: 401 (expected 401)",
       "response_data": null
     },
     {
-      "test": "Deterministic Behavior",
+      "test": "Candidate Update Profile",
       "status": "PASSED",
-      "message": "Scores match: {'github_score': 51, 'leetcode_score': 0, 'wallet_persistence_score': 0}, Compute count: 4, Hash1: 45ca9b283fcc5b3b..., Hash2: 5ba66c3a21d0884f...",
+      "message": "Profile ID: torvalds, Contact email set",
       "response_data": null
     },
     {
-      "test": "Verification Endpoint",
+      "test": "Create Job",
       "status": "PASSED",
-      "message": "Correct hash verified, wrong hash rejected. Profile ID: torvalds",
+      "message": "Job ID: 693e413a890f4fe6a6dbced0, Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
       "response_data": null
     },
     {
-      "test": "Platform History Tracking",
+      "test": "Create Job Invalid Weights",
       "status": "PASSED",
-      "message": "Compute count increased: 6 -> 7, First seen preserved: 2025-12-13T16:06:18.549Z",
+      "message": "Status: 400 (expected 400), Error: Weights must sum to 1.0",
       "response_data": null
     },
     {
-      "test": "Role Signal Extraction",
-      "status": "FAILED",
-      "message": "No analyzed repos found",
-      "response_data": {
-        "profile_id": "torvalds",
-        "artifact": {
-          "inputs": {
-            "github_username": "torvalds",
-            "leetcode_username": null,
-            "wallet_address": null
-          },
-          "deterministic_scores": {
-            "github_score": 0,
-            "leetcode_score": 0,
-            "wallet_persistence_score": 0
-          },
-          "role_signals": {
-            "frontend": 0,
-            "backend": 0,
-            "data": 0,
-            "devops": 0
-          },
-          "ai_interpretation": {
-            "confidence": "Low",
-            "role_fit": {
-              "frontend": "Weak",
-              "backend": "Weak",
-              "data": "Weak",
-              "devops": "Weak"
-            },
-            "anomalies": [],
-            "summary": "Profile shows limited technical signals. More public activity needed for comprehensive assessment."
-          },
-          "timestamp": "2025-12-13T16:06:23.972Z"
-        },
-        "artifact_hash": "ee905628479329591bfefd8bc03a6151df98fd368fe5d4452a3cbf1c2b670e2c",
-        "platform_history": {
-          "first_seen_at": "2025-12-13T16:06:18.549Z",
-          "compute_count": 8,
-          "platform_age_days": 0
-        },
-        "blockchain_proof": {
-          "anchored": false,
-          "tx_hash": null,
-          "note": "Blockchain anchoring will be enabled after smart contract deployment"
-        },
-        "fetched_data": {
-          "github": {
-            "username": "torvalds",
-            "found": false
-          },
-          "leetcode": null,
-          "wallet": null
-        },
-        "verification": {
-          "reproducible": true,
-          "message": "This profile is reproducible and verifiable from public data.",
-          "verification_steps": [
-            "1. Re-fetch public GitHub/LeetCode/wallet data",
-            "2. Re-run deterministic computation",
-            "3. Re-generate artifact",
-            "4. Re-hash artifact",
-            "5. Compare with on-chain hash (when deployed)"
-          ]
-        }
-      }
+      "test": "Browse Jobs",
+      "status": "PASSED",
+      "message": "Found 1 jobs",
+      "response_data": null
+    },
+    {
+      "test": "Browse Jobs With Filters",
+      "status": "PASSED",
+      "message": "Found 1 Frontend/Remote jobs",
+      "response_data": null
+    },
+    {
+      "test": "Get Job Details",
+      "status": "PASSED",
+      "message": "Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
+      "response_data": null
+    },
+    {
+      "test": "Apply to Job",
+      "status": "PASSED",
+      "message": "Application successful, Job-specific score: 0/100",
+      "response_data": null
+    },
+    {
+      "test": "Apply Duplicate",
+      "status": "PASSED",
+      "message": "Status: 400 (expected 400), Error: Already applied to this job",
+      "response_data": null
+    },
+    {
+      "test": "Get Recruiter Jobs",
+      "status": "PASSED",
+      "message": "Found 1 jobs, Applicant count: 1",
+      "response_data": null
+    },
+    {
+      "test": "Get Applicants",
+      "status": "PASSED",
+      "message": "Found 1 applicants, Top score: 0/100, Sorted correctly: True",
+      "response_data": null
+    },
+    {
+      "test": "Protected Route No Auth",
+      "status": "PASSED",
+      "message": "Status: 401 (expected 401)",
+      "response_data": null
+    },
+    {
+      "test": "Protected Route Wrong Role",
+      "status": "PASSED",
+      "message": "Status: 403 (expected 403)",
+      "response_data": null
     }
   ]
 }
