@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-14T06:18:51.043224",
+  "timestamp": "2025-12-14T06:19:41.672965",
   "total_tests": 19,
-  "passed_tests": 18,
-  "failed_tests": 1,
-  "success_rate": "94.7%",
+  "passed_tests": 19,
+  "failed_tests": 0,
+  "success_rate": "100.0%",
   "test_details": [
     {
       "test": "Root Endpoint",
@@ -14,25 +14,25 @@
     {
       "test": "Profile Generation",
       "status": "PASSED",
-      "message": "Profile ID: torvalds, GitHub Score: 51",
+      "message": "Profile ID: torvalds, GitHub Score: 0",
       "response_data": null
     },
     {
       "test": "Signup Candidate",
       "status": "PASSED",
-      "message": "Email: candidate_1765693129@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: candidate_1765693180@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
       "test": "Signup Recruiter",
       "status": "PASSED",
-      "message": "Email: recruiter_1765693129@test.com, Role: recruiter, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: recruiter_1765693180@test.com, Role: recruiter, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
       "test": "Login",
       "status": "PASSED",
-      "message": "Email: candidate_1765693129@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
+      "message": "Email: candidate_1765693180@test.com, Role: candidate, Token: eyJhbGciOiJIUzI1NiIs...",
       "response_data": null
     },
     {
@@ -49,14 +49,14 @@
     },
     {
       "test": "Get My Profile",
-      "status": "FAILED",
-      "message": "Status: 404",
-      "response_data": "{\"message\":\"Route GET:/api/candidate/my-profile not found\",\"error\":\"Not Found\",\"statusCode\":404}"
+      "status": "PASSED",
+      "message": "Profile ID: torvalds, Contact email: candidate_1765693180@test.com (auto-saved correctly)",
+      "response_data": null
     },
     {
       "test": "Create Job",
       "status": "PASSED",
-      "message": "Job ID: 693e56ca086065c7a6071b7c, Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
+      "message": "Job ID: 693e56fd60e74e5b2a4a41c6, Title: Senior Frontend Engineer, Weights: {'github': 0.5, 'leetcode': 0.3, 'wallet': 0.2}",
       "response_data": null
     },
     {
@@ -68,13 +68,13 @@
     {
       "test": "Browse Jobs",
       "status": "PASSED",
-      "message": "Found 3 jobs",
+      "message": "Found 4 jobs",
       "response_data": null
     },
     {
       "test": "Browse Jobs With Filters",
       "status": "PASSED",
-      "message": "Found 3 Frontend/Remote jobs",
+      "message": "Found 4 Frontend/Remote jobs",
       "response_data": null
     },
     {
