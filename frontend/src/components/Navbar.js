@@ -21,7 +21,7 @@ export default function Navbar() {
           </Link>
           
           <div className="flex items-center gap-6">
-            {user && (
+            {user?.role === 'candidate' && (
               <Link to="/jobs" className="text-slate-300 hover:text-white transition-colors">
                 Browse Jobs
               </Link>
