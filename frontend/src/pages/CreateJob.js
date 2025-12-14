@@ -76,9 +76,12 @@ export default function CreateJob() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         
+        <div className="mb-6">
+          <Link to="/recruiter/jobs" className="text-indigo-400 hover:text-indigo-300">← Back to My Jobs</Link>
+        </div>
+        
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-white" style={{ fontFamily: 'Azeret Mono, monospace' }}>Create Job</h1>
-          <Link to="/recruiter/jobs"><Button variant="outline" className="border-slate-600 text-slate-300">Back to Jobs</Button></Link>
         </div>
 
         <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-lg">
