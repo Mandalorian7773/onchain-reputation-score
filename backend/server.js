@@ -7,6 +7,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { anchorService } from './src/services/anchorService.js';
 
 dotenv.config();
 
@@ -449,28 +450,60 @@ async function updatePlatformHistory(profileId, hash, inputs) {
   }
 }
 
+async function updatePlatformHistoryWithTxHash(profileId, txHash, blockNumber) {
+  try {
+    const collection = db.collection('platform_history');
+    await collection.findOneAndUpdate(
+      { profile_id: profileId },
+      {
+        $set: { 
+          latest_tx_hash: txHash,
+          latest_block_number: blockNumber,
+          anchor_status: 'anchored'
+        }
+      }
+    );
+    fastify.log.info(`Updated platform history with txHash: ${txHash}`);
+  } catch (error) {
+    fastify.log.error('Platform history txHash update error:', error);
+  }
+}
+
 // ============================================
 // BLOCKCHAIN ANCHORING
 // ============================================
 
 async function anchorHashOnChain(profileId, hash) {
   try {
-    // For MVP: Log anchoring intent
-    // In production: Write to smart contract
-    fastify.log.info(`[BLOCKCHAIN] Would anchor: profileId=${profileId}, hash=${hash.slice(0, 16)}...`);
+    fastify.log.info(`[BLOCKCHAIN] Anchoring: profileId=${profileId}, hash=${hash.slice(0, 16)}...`);
     
-    // Placeholder for actual smart contract call
-    // const contract = new ethers.Contract(contractAddress, abi, wallet);
-    // await contract.anchorProfile(profileId, hash);
+    // Call anchor service
+    const result = await anchorService.anchorProfileHash(profileId, hash);
     
-    return {
-      anchored: false, // Set to true when actual contract is deployed
-      tx_hash: null,
-      note: 'Blockchain anchoring will be enabled after smart contract deployment'
-    };
+    if (result.success) {
+      fastify.log.info(`[BLOCKCHAIN] Successfully anchored: tx=${result.txHash}`);
+      return {
+        anchored: true,
+        tx_hash: result.txHash,
+        block_number: result.blockNumber,
+        gas_used: result.gasUsed
+      };
+    } else {
+      fastify.log.warn(`[BLOCKCHAIN] Anchoring failed: ${result.error}`);
+      return {
+        anchored: false,
+        tx_hash: null,
+        error: result.error,
+        status: 'pending'
+      };
+    }
   } catch (error) {
     fastify.log.error('Blockchain anchor error:', error);
-    return { anchored: false, error: error.message };
+    return { 
+      anchored: false, 
+      error: error.message,
+      status: 'pending'
+    };
   }
 }
 
@@ -590,7 +623,12 @@ fastify.post('/api/profile', async (request, reply) => {
     // 9. Anchor hash on blockchain (Polygon)
     const blockchainProof = await anchorHashOnChain(profileId, artifactHash);
     
-    // 10. Return complete profile
+    // 10. Store txHash in MongoDB if anchoring succeeded
+    if (blockchainProof.anchored && blockchainProof.tx_hash) {
+      await updatePlatformHistoryWithTxHash(profileId, blockchainProof.tx_hash, blockchainProof.block_number);
+    }
+    
+    // 11. Return complete profile
     return {
       profile_id: profileId,
       artifact,
@@ -653,6 +691,24 @@ fastify.get('/api/verify/:profileId', async (request, reply) => {
   } catch (error) {
     fastify.log.error('Verification error:', error);
     return reply.code(500).send({ error: 'Verification failed' });
+  }
+});
+
+// Get on-chain anchors for a profile
+fastify.get('/api/anchors/:profileId', async (request, reply) => {
+  const { profileId } = request.params;
+  
+  try {
+    const result = await anchorService.getAnchors(profileId);
+    
+    if (result.success) {
+      return { anchors: result.anchors };
+    } else {
+      return { anchors: [], error: result.error };
+    }
+  } catch (error) {
+    fastify.log.error('Get anchors error:', error);
+    return reply.code(500).send({ error: 'Failed to get anchors' });
   }
 });
 

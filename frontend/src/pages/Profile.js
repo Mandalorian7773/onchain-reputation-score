@@ -277,27 +277,55 @@ export default function Profile() {
             <CardTitle className="text-white text-xl">Verification Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-indigo-900/20 border border-indigo-600/30 p-4 rounded-lg">
-              <p className="text-indigo-300 text-sm">
-                <strong>Reproducible from public data</strong>
-              </p>
-              <p className="text-slate-400 text-xs mt-2">
-                {profile.blockchain_proof.anchored ? (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-emerald-400 font-semibold">Reproducible</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {profile.blockchain_proof?.anchored ? (
                   <>
-                    On-chain anchored • 
-                    <a 
-                      href={`https://polygonscan.com/tx/${profile.blockchain_proof.tx_hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-400 hover:underline"
-                    >
-                      View on Polygonscan
-                    </a>
+                    <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-emerald-400 font-semibold">Anchored on Polygon</span>
                   </>
                 ) : (
-                  'On-chain anchoring pending'
+                  <>
+                    <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-amber-400 font-semibold">Anchoring Pending</span>
+                  </>
                 )}
+              </div>
+            </div>
+            
+            {profile.blockchain_proof?.anchored && profile.blockchain_proof?.tx_hash && (
+              <div className="bg-emerald-900/20 border border-emerald-600/30 p-4 rounded-lg">
+                <p className="text-emerald-300 text-sm mb-2">
+                  <strong>On-chain Verification Available</strong>
+                </p>
+                <a 
+                  href={`https://amoy.polygonscan.com/tx/${profile.blockchain_proof.tx_hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-sm"
+                >
+                  View transaction ↗
+                </a>
+              </div>
+            )}
+            
+            <div className="bg-indigo-900/20 border border-indigo-600/30 p-4 rounded-lg">
+              <p className="text-indigo-300 text-sm mb-2">
+                <strong>Profile Hash:</strong>
               </p>
+              <code className="text-xs text-slate-400 bg-slate-800 p-2 rounded block break-all">
+                {profile.artifact_hash}
+              </code>
             </div>
           </CardContent>
         </Card>
