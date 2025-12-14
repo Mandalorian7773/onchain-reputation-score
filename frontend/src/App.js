@@ -43,7 +43,8 @@ function AppRoutes() {
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/candidate/dashboard" element={<ProtectedRoute requiredRole="candidate"><CandidateDashboard /></ProtectedRoute>} />
         <Route path="/profile/:profileId" element={<Profile />} />
         <Route path="/verify/:profileId" element={<Verify />} />
         <Route path="/about" element={<About />} />
