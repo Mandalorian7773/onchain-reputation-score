@@ -65,6 +65,31 @@ export default function Jobs() {
           <Link to="/"><Button variant="outline" className="border-slate-600 text-slate-300">← Home</Button></Link>
         </div>
 
+        {user?.role === 'candidate' && !hasProfile && (
+          <Card className="bg-amber-900/20 border-amber-600/40 backdrop-blur-lg mb-6">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-amber-500/20 p-3 rounded-lg">
+                  <svg className="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-amber-400 font-bold mb-2">Profile Required to Apply</h3>
+                  <p className="text-slate-300 text-sm mb-3">
+                    You need to generate your verifiable reputation profile before applying to jobs.
+                  </p>
+                  <Link to="/candidate/dashboard">
+                    <Button className="bg-gradient-to-r from-indigo-600 to-purple-600">
+                      Generate My Profile
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-lg mb-6">
           <CardHeader>
             <CardTitle className="text-white">Filters</CardTitle>
