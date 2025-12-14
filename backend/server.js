@@ -966,7 +966,13 @@ fastify.get('/api/recruiter/jobs/:jobId/applicants', { preHandler: authenticate 
       { projection: { _id: 0 } }
     ).sort({ job_specific_score: -1 }).toArray();
     
-    return { job, applicants };
+    // Add AI hiring insights for each applicant
+    const applicantsWithInsights = applicants.map(applicant => ({
+      ...applicant,
+      ai_hiring_insights: generateHiringInsights(applicant, job)
+    }));
+    
+    return { job, applicants: applicantsWithInsights };
   } catch (error) {
     fastify.log.error('Applicants fetch error:', error);
     return reply.code(500).send({ error: 'Failed to fetch applicants' });
