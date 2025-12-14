@@ -323,6 +323,51 @@ class JobBoardTester:
             self.log_test("Candidate Update Profile", False, f"Error: {str(e)}")
             return False
 
+    def test_get_my_profile(self):
+        """Test candidate getting their own profile (auto-saved email verification)"""
+        if not self.candidate_token:
+            self.log_test("Get My Profile", False, "Missing candidate token")
+            return False
+        
+        try:
+            print("\n🔍 Testing get my profile...")
+            response = requests.get(
+                f"{self.base_url}/candidate/my-profile",
+                headers={
+                    'Authorization': f'Bearer {self.candidate_token}'
+                },
+                timeout=30
+            )
+            
+            success = response.status_code == 200
+            data = response.json() if response.status_code == 200 else response.text
+            
+            if success:
+                profile_id = data.get("profile_id")
+                contact_email = data.get("contact_email")
+                
+                if not profile_id:
+                    self.log_test("Get My Profile", False, "No profile_id returned", data)
+                    return False
+                
+                if contact_email != self.candidate_email:
+                    self.log_test("Get My Profile", False, f"Email mismatch: expected {self.candidate_email}, got {contact_email}", data)
+                    return False
+                
+                self.log_test(
+                    "Get My Profile",
+                    True,
+                    f"Profile ID: {profile_id}, Contact email: {contact_email} (auto-saved correctly)"
+                )
+                return True
+            else:
+                self.log_test("Get My Profile", False, f"Status: {response.status_code}", data)
+                return False
+                
+        except Exception as e:
+            self.log_test("Get My Profile", False, f"Error: {str(e)}")
+            return False
+
     # ============================================
     # JOB TESTS
     # ============================================
