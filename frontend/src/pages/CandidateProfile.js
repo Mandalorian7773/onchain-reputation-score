@@ -53,9 +53,18 @@ export default function CandidateProfile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         
-        <h1 className="text-4xl font-bold text-white mb-8" style={{ fontFamily: 'Azeret Mono, monospace' }}>
-          Setup Your Candidate Profile
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-white" style={{ fontFamily: 'Azeret Mono, monospace' }}>
+            Setup Your Candidate Profile
+          </h1>
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            className="border-red-600 text-red-400 hover:bg-red-600/20"
+          >
+            Logout
+          </Button>
+        </div>
 
         <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-lg mb-6">
           <CardHeader>
