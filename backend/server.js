@@ -593,6 +593,317 @@ fastify.get('/api/verify/:profileId', async (request, reply) => {
   }
 });
 
+// ============================================
+// AUTHENTICATION & JOB BOARD
+// ============================================
+
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+
+// Auth middleware
+async function authenticate(request, reply) {
+  try {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    request.user = decoded;
+  } catch (error) {
+    return reply.code(401).send({ error: 'Invalid token' });
+  }
+}
+
+// Signup
+fastify.post('/api/auth/signup', async (request, reply) => {
+  const { email, password, role } = request.body;
+  
+  if (!email || !password || !role) {
+    return reply.code(400).send({ error: 'Email, password, and role required' });
+  }
+  
+  if (role !== 'candidate' && role !== 'recruiter') {
+    return reply.code(400).send({ error: 'Role must be candidate or recruiter' });
+  }
+  
+  try {
+    const existingUser = await db.collection('users').findOne({ email });
+    if (existingUser) {
+      return reply.code(400).send({ error: 'User already exists' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = {
+      email,
+      password: hashedPassword,
+      role,
+      created_at: new Date()
+    };
+    
+    const result = await db.collection('users').insertOne(user);
+    const token = jwt.sign({ userId: result.insertedId.toString(), email, role }, JWT_SECRET, { expiresIn: '30d' });
+    
+    return { token, user: { email, role } };
+  } catch (error) {
+    fastify.log.error('Signup error:', error);
+    return reply.code(500).send({ error: 'Signup failed' });
+  }
+});
+
+// Login
+fastify.post('/api/auth/login', async (request, reply) => {
+  const { email, password } = request.body;
+  
+  if (!email || !password) {
+    return reply.code(400).send({ error: 'Email and password required' });
+  }
+  
+  try {
+    const user = await db.collection('users').findOne({ email });
+    if (!user) {
+      return reply.code(401).send({ error: 'Invalid credentials' });
+    }
+    
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return reply.code(401).send({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ userId: user._id.toString(), email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
+    
+    return { token, user: { email: user.email, role: user.role } };
+  } catch (error) {
+    fastify.log.error('Login error:', error);
+    return reply.code(500).send({ error: 'Login failed' });
+  }
+});
+
+// Update candidate profile with email
+fastify.post('/api/candidate/profile', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'candidate') {
+    return reply.code(403).send({ error: 'Candidates only' });
+  }
+  
+  const { profile_id, contact_email } = request.body;
+  
+  try {
+    await db.collection('candidate_profiles').updateOne(
+      { profile_id },
+      { $set: { contact_email, user_id: request.user.userId, updated_at: new Date() } },
+      { upsert: true }
+    );
+    
+    return { success: true, profile_id };
+  } catch (error) {
+    fastify.log.error('Profile update error:', error);
+    return reply.code(500).send({ error: 'Failed to update profile' });
+  }
+});
+
+// Create job (recruiter only)
+fastify.post('/api/jobs', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'recruiter') {
+    return reply.code(403).send({ error: 'Recruiters only' });
+  }
+  
+  const { title, role, location, description, weights } = request.body;
+  
+  if (!title || !role || !location || !description || !weights) {
+    return reply.code(400).send({ error: 'All fields required' });
+  }
+  
+  const weightSum = (weights.github || 0) + (weights.leetcode || 0) + (weights.wallet || 0);
+  if (Math.abs(weightSum - 1.0) > 0.01) {
+    return reply.code(400).send({ error: 'Weights must sum to 1.0' });
+  }
+  
+  try {
+    const job = {
+      title,
+      role,
+      location,
+      description,
+      weights,
+      recruiter_id: request.user.userId,
+      recruiter_email: request.user.email,
+      created_at: new Date(),
+      applicant_count: 0
+    };
+    
+    const result = await db.collection('jobs').insertOne(job);
+    return { job_id: result.insertedId.toString(), ...job };
+  } catch (error) {
+    fastify.log.error('Job creation error:', error);
+    return reply.code(500).send({ error: 'Failed to create job' });
+  }
+});
+
+// Get all jobs (public)
+fastify.get('/api/jobs', async (request, reply) => {
+  const { role, location } = request.query;
+  
+  try {
+    const filter = {};
+    if (role) filter.role = role;
+    if (location) filter.location = location;
+    
+    const jobs = await db.collection('jobs').find(filter, { projection: { _id: 0 } }).toArray();
+    
+    return { jobs };
+  } catch (error) {
+    fastify.log.error('Jobs fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch jobs' });
+  }
+});
+
+// Get job by ID (public)
+fastify.get('/api/jobs/:jobId', async (request, reply) => {
+  const { jobId } = request.params;
+  
+  try {
+    const job = await db.collection('jobs').findOne({ _id: new ObjectId(jobId) }, { projection: { _id: 0 } });
+    
+    if (!job) {
+      return reply.code(404).send({ error: 'Job not found' });
+    }
+    
+    return { job };
+  } catch (error) {
+    fastify.log.error('Job fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch job' });
+  }
+});
+
+// Get recruiter's jobs
+fastify.get('/api/recruiter/jobs', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'recruiter') {
+    return reply.code(403).send({ error: 'Recruiters only' });
+  }
+  
+  try {
+    const jobs = await db.collection('jobs').find(
+      { recruiter_id: request.user.userId },
+      { projection: { _id: 0 } }
+    ).toArray();
+    
+    return { jobs };
+  } catch (error) {
+    fastify.log.error('Recruiter jobs fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch jobs' });
+  }
+});
+
+// Apply to job
+fastify.post('/api/jobs/:jobId/apply', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'candidate') {
+    return reply.code(403).send({ error: 'Candidates only' });
+  }
+  
+  const { jobId } = request.params;
+  const { profile_id } = request.body;
+  
+  try {
+    // Get job
+    const job = await db.collection('jobs').findOne({ _id: new ObjectId(jobId) });
+    if (!job) {
+      return reply.code(404).send({ error: 'Job not found' });
+    }
+    
+    // Get candidate profile
+    const candidateProfile = await db.collection('candidate_profiles').findOne({ profile_id });
+    if (!candidateProfile) {
+      return reply.code(400).send({ error: 'Please set contact email in your profile first' });
+    }
+    
+    // Get reputation data to compute job-specific score
+    const platformHistory = await getPlatformHistory(profile_id);
+    if (!platformHistory) {
+      return reply.code(400).send({ error: 'Profile not found. Generate profile first.' });
+    }
+    
+    // Regenerate scores
+    const inputs = platformHistory.latest_inputs;
+    const [githubData, leetcodeData, walletData] = await Promise.all([
+      fetchGitHubProfile(inputs.github_username),
+      fetchLeetCodeProfile(inputs.leetcode_username),
+      fetchWalletData(inputs.wallet_address)
+    ]);
+    
+    const scores = computeDeterministicScores(githubData, leetcodeData, walletData);
+    
+    // Compute job-specific score using weights
+    const jobSpecificScore = Math.round((
+      (scores.github_score * (job.weights.github || 0)) +
+      (scores.leetcode_score * (job.weights.leetcode || 0)) +
+      (scores.wallet_persistence_score * (job.weights.wallet || 0))
+    ) * 10) / 10;
+    
+    // Check if already applied
+    const existing = await db.collection('applications').findOne({ job_id: jobId, profile_id });
+    if (existing) {
+      return reply.code(400).send({ error: 'Already applied to this job' });
+    }
+    
+    const roleSignals = githubData?.role_signals || { frontend: 0, backend: 0, data: 0, devops: 0 };
+    const aiInterpretation = await getAIInterpretation(roleSignals);
+    
+    // Create application
+    const application = {
+      job_id: jobId,
+      job_title: job.title,
+      profile_id,
+      candidate_email: candidateProfile.contact_email,
+      user_id: request.user.userId,
+      job_specific_score: jobSpecificScore,
+      deterministic_scores: scores,
+      role_fit: aiInterpretation.role_fit,
+      ai_summary: aiInterpretation.summary,
+      applied_at: new Date()
+    };
+    
+    await db.collection('applications').insertOne(application);
+    
+    // Increment applicant count
+    await db.collection('jobs').updateOne(
+      { _id: new ObjectId(jobId) },
+      { $inc: { applicant_count: 1 } }
+    );
+    
+    return { success: true, job_specific_score: jobSpecificScore };
+  } catch (error) {
+    fastify.log.error('Application error:', error);
+    return reply.code(500).send({ error: 'Application failed', details: error.message });
+  }
+});
+
+// Get applicants for a job (recruiter only)
+fastify.get('/api/recruiter/jobs/:jobId/applicants', { preHandler: authenticate }, async (request, reply) => {
+  if (request.user.role !== 'recruiter') {
+    return reply.code(403).send({ error: 'Recruiters only' });
+  }
+  
+  const { jobId } = request.params;
+  
+  try {
+    const job = await db.collection('jobs').findOne({ _id: new ObjectId(jobId) });
+    if (!job || job.recruiter_id !== request.user.userId) {
+      return reply.code(404).send({ error: 'Job not found' });
+    }
+    
+    const applicants = await db.collection('applications').find(
+      { job_id: jobId },
+      { projection: { _id: 0 } }
+    ).sort({ job_specific_score: -1 }).toArray();
+    
+    return { job, applicants };
+  } catch (error) {
+    fastify.log.error('Applicants fetch error:', error);
+    return reply.code(500).send({ error: 'Failed to fetch applicants' });
+  }
+});
+
+
 const start = async () => {
   try {
     await fastify.listen({ port: 8001, host: '0.0.0.0' });
