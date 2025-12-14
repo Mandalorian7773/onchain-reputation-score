@@ -39,23 +39,35 @@ export default function JobDetail() {
       return;
     }
 
-    if (!profileId) {
-      toast.error('Please enter your profile ID');
-      return;
-    }
-
+    // Profile ID is user's email (or we need to fetch it from candidate_profiles)
     setApplying(true);
     try {
+      // First check if user has generated a profile
+      const candidateProfile = await axios.get(`${API}/candidate/my-profile`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      
+      if (!candidateProfile.data.profile_id) {
+        toast.error('Please generate your profile first from the dashboard');
+        navigate('/candidate/dashboard');
+        return;
+      }
+      
       const response = await axios.post(
         `${API}/jobs/${jobId}/apply`,
-        { profile_id: profileId },
+        { profile_id: candidateProfile.data.profile_id },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
       
       toast.success(`Applied! Job-specific score: ${response.data.job_specific_score}/100`);
       navigate('/jobs');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Application failed');
+      if (error.response?.status === 404) {
+        toast.error('Please generate your verifiable profile first');
+        navigate('/candidate/dashboard');
+      } else {
+        toast.error(error.response?.data?.error || 'Application failed');
+      }
     } finally {
       setApplying(false);
     }
